@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <data>
+
+        <variable
+            name="position"
+            type="java.lang.Integer"/>
+
+        <variable
+            name="viewModel"
+            type="com.audiobook.nbogdand.playbook.SongsViewModel"/>
+
+    </data>
+
+
+    <LinearLayout
+        android:layout_height="60sp"
+        android:layout_width="wrap_content"
+        android:orientation="horizontal"
+        android:background="@mipmap/main_background"
+        android:weightSum="10">
+
+        <ImageView
+            android:id="@+id/album_item"
+            android:layout_width="60sp"
+            android:layout_height="60sp"
+            android:scaleType="fitCenter"
+            android:transitionName="@{viewModel.getSongAt(position).title}"
+            android:src="@drawable/album_art"
+            android:layout_weight="0"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="60sp"
+            android:orientation="vertical"
+            android:onClick="@{() -> viewModel.onItemClick(position)}"
+            android:layout_weight="10"
+            android:weightSum="2">
+
+
+            <TextView
+                android:id="@+id/song_title_textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@{viewModel.getSongAt(position).title}"
+                android:textSize="18sp"
+                android:layout_weight="1"/>
+
+            <TextView
+                android:id="@+id/song_author_textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@{viewModel.getSongAt(position).author}"
+                android:layout_weight="1"/>
+
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+
+</layout>

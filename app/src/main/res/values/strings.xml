@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">PlayBook</string>
+    <string name="title_activity_play_song">PlaySongActivity</string>
+</resources>
