@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
     <application
         android:allowBackup="true"
@@ -23,6 +24,17 @@
             android:name=".PlaySongActivity"
             android:label="@string/title_activity_play_song"
             android:theme="@style/AppTheme"></activity>
+        <service android:name=".Services.AudioService"/>
+        
+        <receiver android:name=".BroadcastReciever.NotificationBroadcast">
+            <intent-filter >
+                <action android:name="com.audiobook.nbogdand.playbook.pause"/>
+                <action android:name="com.audiobook.nbogdand.playbook.minus"/>
+                <action android:name="com.audiobook.nbogdand.playbook.plus"/>
+
+            </intent-filter>
+
+        </receiver>
     </application>
 
 </manifest>

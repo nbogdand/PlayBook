@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:weightSum="10">
+
+    <ImageView
+        android:src="@drawable/album_art"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_weight="0"/>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_weight="10">
+
+        <TextView
+            android:id="@+id/song_title_notif"
+            android:layout_width="match_parent"
+            android:layout_height="22dp"
+            style="@style/TextAppearance.Compat.Notification.Title"/>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="38dp"
+            android:weightSum="3">
+
+            <ImageView
+                android:id="@+id/notif_minus30"
+                android:src="@drawable/minus30"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"/>
+
+
+            <ImageView
+                android:id="@+id/notif_pause"
+                android:src="@drawable/pause"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"/>
+
+            <ImageView
+                android:id="@+id/notif_plus30"
+                android:src="@drawable/plus30"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_weight="1"/>
+
+
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+</LinearLayout>

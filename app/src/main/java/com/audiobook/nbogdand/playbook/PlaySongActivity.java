@@ -1,12 +1,19 @@
 package com.audiobook.nbogdand.playbook;
 
 import android.Manifest;
+import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -22,6 +29,7 @@ import android.view.View;
 import android.view.Window;
 import android.widget.ImageView;
 
+import com.audiobook.nbogdand.playbook.Services.AudioService;
 import com.audiobook.nbogdand.playbook.databinding.PlaySongActivityBinding;
 
 import static com.audiobook.nbogdand.playbook.MainActivity.MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE;
@@ -34,6 +42,8 @@ public class PlaySongActivity extends AppCompatActivity {
 
 
     static final int MY_PERMISSION_REQUEST = 1;
+
+    public static final String CHANNEL_ID = "musicServiceChannel";
 
 
     @Override
@@ -112,7 +122,10 @@ public class PlaySongActivity extends AppCompatActivity {
         }else {
             Log.d("permission","granted play song");
             playSongViewModel.playSong(getApplicationContext(), playSongViewModel.getSongPath(this, imageTransitionName, extras.getString("artist")));
+            startMyService(imageTransitionName);
         }
+
+
 
     }
 
@@ -123,7 +136,31 @@ public class PlaySongActivity extends AppCompatActivity {
         binding.setApplicationContext(getApplicationContext());
         binding.setPlayViewModel(playSongViewModel);
 
+      //  createNotificationChannel();
 
     }
+
+    public void startMyService(String songName){
+
+        Intent serviceIntent = new Intent(this, AudioService.class);
+        serviceIntent.setAction(Constants.START_FOREGROUND_SERVICE);
+        serviceIntent.putExtra("songName",songName);
+        serviceIntent.putExtra("songPath",playSongViewModel.getSongPath(this, songName, artist));
+
+      //  serviceIntent.putExtra("context",(Parcelable) context);
+        //   serviceIntent.putExtra("viewModel", (Parcelable) playSongViewModel);
+
+        startService(serviceIntent);
+
+    }
+
+    public void stopMyService(){
+
+        Intent serviceIntent = new Intent(this,AudioService.class);
+        serviceIntent.setAction(Constants.STOP_FOREGROUND_SERVICE);
+
+        stopService(serviceIntent);
+    }
+
 
 }

@@ -26,7 +26,7 @@ import static com.audiobook.nbogdand.playbook.MainActivity.MY_PERMISSION_REQUEST
 
 public class PlaySongViewModel extends ViewModel implements MediaPlayer.OnPreparedListener {
 
-    private MediaPlayer mediaPlayer;
+    private static MediaPlayer mediaPlayer;
 
     public void playSong(Context applicationContext, String path){
 
@@ -75,6 +75,8 @@ public class PlaySongViewModel extends ViewModel implements MediaPlayer.OnPrepar
             mediaPlayer = null;
         }
     }
+
+    public static MediaPlayer getMediaPlayer(){return mediaPlayer;}
 
     public String getSongPath(Context context,String title,String artist){
 
