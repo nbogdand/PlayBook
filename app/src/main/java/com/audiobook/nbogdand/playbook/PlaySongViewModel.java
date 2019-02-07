@@ -1,33 +1,25 @@
 package com.audiobook.nbogdand.playbook;
 
-import android.Manifest;
-import android.app.Activity;
 import android.arch.lifecycle.ViewModel;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
-import android.content.pm.PackageManager;
+import android.content.Intent;
 import android.database.Cursor;
-import android.media.AudioAttributes;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
+import com.audiobook.nbogdand.playbook.Services.AudioService;
 import com.audiobook.nbogdand.playbook.data.Song;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-
-import static com.audiobook.nbogdand.playbook.MainActivity.MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE;
 
 public class PlaySongViewModel extends ViewModel implements MediaPlayer.OnPreparedListener {
 
     private static MediaPlayer mediaPlayer;
-
+/*
     public void playSong(Context applicationContext, String path){
 
         Uri songUri = Uri.fromFile(new File(path));
@@ -76,6 +68,29 @@ public class PlaySongViewModel extends ViewModel implements MediaPlayer.OnPrepar
         }
     }
 
+    */
+
+    public void playSong(Context context,Song playingSong){
+        Intent statPlaying = new Intent(context, AudioService.class);
+        statPlaying.setAction(Constants.START_FOREGROUND_SERVICE);
+        statPlaying.putExtra(Constants.PLAYING_SONG,playingSong);
+        statPlaying.putExtra("nextState",Constants.PAUSE_STATE);
+        context.startService(statPlaying);
+    }
+
+    public void pauseSong(Context context){
+        Intent pauseSong = new Intent(context,AudioService.class);
+        pauseSong.setAction(Constants.PAUSE_FOREGROUND_SERVICE);
+        context.startService(pauseSong);
+    }
+
+    public void stopSong(Context context){
+        Intent stopSong = new Intent(context,AudioService.class);
+        stopSong.setAction(Constants.STOP_FOREGROUND_SERVICE);
+        context.startService(stopSong);
+
+    }
+
     public static MediaPlayer getMediaPlayer(){return mediaPlayer;}
 
     public String getSongPath(Context context,String title,String artist){
@@ -96,7 +111,7 @@ public class PlaySongViewModel extends ViewModel implements MediaPlayer.OnPrepar
             do{
                 Song song = new Song(songsCursor.getString(songTitle),
                         songsCursor.getString(songAuthor),
-                        21);
+                        21,songsCursor.getString(column_index));
 
                 if(songsCursor.getString(songTitle).equals(title) && songsCursor.getString(songAuthor).equals(artist)) {
                     Log.d("uri raw",uri.toString());

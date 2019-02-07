@@ -1,40 +1,25 @@
 package com.audiobook.nbogdand.playbook;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Parcelable;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.transition.Explode;
-import android.transition.Fade;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.widget.Toast;
 
 import com.audiobook.nbogdand.playbook.BroadcastReciever.NotificationBroadcast;
-import com.audiobook.nbogdand.playbook.Services.AudioService;
-import com.audiobook.nbogdand.playbook.adapter.SongsAdapter;
-import com.audiobook.nbogdand.playbook.adapter.SongsAdapterViewHolder;
 import com.audiobook.nbogdand.playbook.data.Song;
 
 import java.util.List;
@@ -63,13 +48,13 @@ public class MainActivity extends AppCompatActivity {
 
         NotificationBroadcast mNotificationBroadcast = new NotificationBroadcast();
         getApplicationContext().registerReceiver(mNotificationBroadcast,
-                    new IntentFilter(AudioService.NOTIFY_MINUS));
+                    new IntentFilter(Constants.NOTIFY_MINUS));
 
         getApplicationContext().registerReceiver(mNotificationBroadcast,
-                new IntentFilter(AudioService.NOTIFY_PAUSE));
+                new IntentFilter(Constants.NOTIFY_PAUSE));
 
         getApplicationContext().registerReceiver(mNotificationBroadcast,
-                new IntentFilter(AudioService.NOTIFY_PLUS));
+                new IntentFilter(Constants.NOTIFY_PLUS));
 
         if(ActivityCompat.checkSelfPermission(this,Manifest.permission.READ_EXTERNAL_STORAGE) !=
                 PackageManager.PERMISSION_GRANTED){
@@ -133,10 +118,19 @@ public class MainActivity extends AppCompatActivity {
 
                         // Map transitionName : song's title
                         // to be available in the second activity
+                        /*
                         play.putExtra("transitionName",viewModel.getSongAt(viewModel.getSelectedPosition()).getTitle());
                         play.putExtra("artist",viewModel.getSongAt(viewModel.getSelectedPosition()).getAuthor());
                         play.putExtra("duration",viewModel.getSongAt(viewModel.getSelectedPosition()).getLength());
+                        */
 
+                        Song playingSong = new Song(viewModel.getSongAt(viewModel.getSelectedPosition()).getTitle(),
+                                                    viewModel.getSongAt(viewModel.getSelectedPosition()).getAuthor(),
+                                                    viewModel.getSongAt(viewModel.getSelectedPosition()).getLength(),
+                                                    viewModel.getSongAt(viewModel.getSelectedPosition()).getSongPath());
+
+                        play.setAction(Constants.OPEN_FROM_MAIN_ACTIVITY);
+                        play.putExtra(Constants.PLAYING_SONG,playingSong);
 
                         //display the second activity
                         startActivity(play, options.toBundle());

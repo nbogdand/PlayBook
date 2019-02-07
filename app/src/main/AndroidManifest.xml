@@ -16,16 +16,16 @@
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".PlaySongActivity"
             android:label="@string/title_activity_play_song"
-            android:theme="@style/AppTheme"></activity>
+            android:theme="@style/AppTheme">
+        </activity>
         <service android:name=".Services.AudioService"/>
-        
         <receiver android:name=".BroadcastReciever.NotificationBroadcast">
             <intent-filter >
                 <action android:name="com.audiobook.nbogdand.playbook.pause"/>

@@ -1,35 +1,20 @@
 package com.audiobook.nbogdand.playbook;
 
 import android.Manifest;
-import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.arch.lifecycle.ViewModel;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
-import android.transition.Explode;
-import android.transition.Fade;
 import android.util.Log;
-import android.view.View;
-import android.view.Window;
 import android.widget.ImageView;
 
 import com.audiobook.nbogdand.playbook.Services.AudioService;
+import com.audiobook.nbogdand.playbook.data.Song;
 import com.audiobook.nbogdand.playbook.databinding.PlaySongActivityBinding;
 
 import static com.audiobook.nbogdand.playbook.MainActivity.MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE;
@@ -38,7 +23,7 @@ public class PlaySongActivity extends AppCompatActivity {
 
     private PlaySongViewModel playSongViewModel;
     private PlaySongActivityBinding binding;
-    private String title,artist,duration;
+    private Song playingSong;
 
 
     static final int MY_PERMISSION_REQUEST = 1;
@@ -53,7 +38,8 @@ public class PlaySongActivity extends AppCompatActivity {
             // read external storage, MY_PERMISSION_REQUEST defined in MainActivity
             case MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE:{
                 if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                    playSongViewModel.playSong(getApplicationContext(), playSongViewModel.getSongPath(this, title,artist));
+                    playSongViewModel.playSong(getApplicationContext(),playingSong);
+
                 }
                 break;
             }
@@ -68,63 +54,66 @@ public class PlaySongActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Retrieving transition name from intent's extras
-        Bundle extras = getIntent().getExtras();
-        String imageTransitionName = null;
+        // If activity is open from notification
+        // It also means it was open at least 1 before and all things are initialized
+            if (getIntent().getAction().equals(Constants.OPEN_NOTIFICATION)) {
+                Song currentSong = getIntent().getParcelableExtra(Constants.PLAYING_SONG);
+                Log.i("OPENNOTIFICATION ",currentSong.getTitle() + " ");
+                playSongViewModel = ViewModelProviders.of(this).get(PlaySongViewModel.class);
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            imageTransitionName = extras.getString("transitionName");
-            title = imageTransitionName;
-            artist = extras.getString("artist");
-        }
+                binding = DataBindingUtil.setContentView(this,R.layout.play_song_activity);
+                binding.setApplicationContext(getApplicationContext());
+                binding.setPlayViewModel(playSongViewModel);
+                binding.setPlayingSong(currentSong);
 
+            } else
+                //If activity is open from main activity
+                if(getIntent().getAction().equals(Constants.OPEN_FROM_MAIN_ACTIVITY)){
 
-        // Initialize viewModel and databinding
-        init();
+                // Retrieving transition name from intent's extras
+                String imageTransitionName = null;
 
-
-        // Setting the transition name to ImageView (shared
-        // element transition)
-        ImageView albumArtImageView = findViewById(R.id.album_art);
-        if(imageTransitionName != null){
-            albumArtImageView.setTransitionName(imageTransitionName);
-        }
-
-        //imageTransitionName is the same as title
-        binding.setSongTitle(imageTransitionName);
-        binding.setArtist(extras.getString("artist"));
-        binding.setDuration(extras.getInt("duration"));
-        binding.setSongPath(playSongViewModel.getSongPath(this,imageTransitionName,extras.getString("artist")));
-
-        String TAG = "playsong";
-
-        Log.d(TAG, "onCreate: " + imageTransitionName);
-        Log.d(TAG, "onCreate: " + extras.getString("artist"));
+                playingSong = (Song) getIntent().getParcelableExtra(Constants.PLAYING_SONG);
 
 
-        if(ActivityCompat.checkSelfPermission(this,Manifest.permission.READ_EXTERNAL_STORAGE) !=
-                PackageManager.PERMISSION_GRANTED){
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && playingSong != null) {
+                    imageTransitionName = playingSong.getTitle();
+                }
+                // Initialize viewModel and databinding
+                init();
 
-            Log.d("permission","denied 1");
-            if(ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.READ_EXTERNAL_STORAGE)){
 
-                Log.d("permission","denied 2");
-                ActivityCompat.requestPermissions(this,new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
-                        MY_PERMISSION_REQUEST);
+                // Setting the transition name to ImageView (shared
+                // element transition)
+                ImageView albumArtImageView = findViewById(R.id.album_art);
+                if (imageTransitionName != null) {
+                    albumArtImageView.setTransitionName(imageTransitionName);
+                }
 
-            }else{
 
-                Log.d("permission","denied 3");
-                ActivityCompat.requestPermissions(this,new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
-                        MY_PERMISSION_REQUEST);
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) !=
+                        PackageManager.PERMISSION_GRANTED) {
+
+                    Log.d("permission", "denied 1");
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+
+                        Log.d("permission", "denied 2");
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                MY_PERMISSION_REQUEST);
+
+                    } else {
+
+                        Log.d("permission", "denied 3");
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                MY_PERMISSION_REQUEST);
+                    }
+
+                } else {
+                    Log.i(Constants.LOGGER_TAG,"Inainte de startMyService()");
+                    startMyService();
+                }
+
             }
-
-        }else {
-            Log.d("permission","granted play song");
-            playSongViewModel.playSong(getApplicationContext(), playSongViewModel.getSongPath(this, imageTransitionName, extras.getString("artist")));
-            startMyService(imageTransitionName);
-        }
-
 
 
     }
@@ -134,22 +123,19 @@ public class PlaySongActivity extends AppCompatActivity {
 
         binding = DataBindingUtil.setContentView(this,R.layout.play_song_activity);
         binding.setApplicationContext(getApplicationContext());
+        binding.setPlayingSong(playingSong);
         binding.setPlayViewModel(playSongViewModel);
-
-      //  createNotificationChannel();
 
     }
 
-    public void startMyService(String songName){
+    public void startMyService(){
 
-        Intent serviceIntent = new Intent(this, AudioService.class);
+
+        Log.i(Constants.LOGGER_TAG,"In startMyService()");
+
+        Intent serviceIntent = new Intent(getApplicationContext(), AudioService.class);
         serviceIntent.setAction(Constants.START_FOREGROUND_SERVICE);
-        serviceIntent.putExtra("songName",songName);
-        serviceIntent.putExtra("songPath",playSongViewModel.getSongPath(this, songName, artist));
-
-      //  serviceIntent.putExtra("context",(Parcelable) context);
-        //   serviceIntent.putExtra("viewModel", (Parcelable) playSongViewModel);
-
+        serviceIntent.putExtra(Constants.PLAYING_SONG,playingSong);
         startService(serviceIntent);
 
     }

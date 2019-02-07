@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.databinding.BaseObservable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -55,18 +56,20 @@ public class Songs extends BaseObservable {
 
         ContentResolver contentResolver = context.getContentResolver();
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        Cursor songsCursor = contentResolver.query(uri,null,null,null,null);
+        Cursor songsCursor = contentResolver.query(uri,null,null,null, MediaStore.Audio.Media.TITLE);
 
         if (songsCursor != null && songsCursor.moveToFirst()){
 
             int songTitle = songsCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
             int songAuthor = songsCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
             int duration = songsCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
+            int column_index = songsCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
 
             do{
                 Song song = new Song(songsCursor.getString(songTitle),
                                     songsCursor.getString(songAuthor),
-                                    21);
+                                    songsCursor.getLong(duration),
+                                    songsCursor.getString(column_index));
                 songsList.add(song);
 
             } while ( songsCursor.moveToNext());

@@ -1,38 +1,32 @@
 package com.audiobook.nbogdand.playbook.Services;
 
 import android.app.Notification;
-import android.app.PendingIntent;
+import android.app.NotificationManager;
 import android.app.Service;
-import android.arch.lifecycle.ViewModelProvider;
-import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.widget.RemoteViews;
 
 import com.audiobook.nbogdand.playbook.Constants;
-import com.audiobook.nbogdand.playbook.MainActivity;
 import com.audiobook.nbogdand.playbook.NotificationGenerator;
-import com.audiobook.nbogdand.playbook.PlaySongActivity;
-import com.audiobook.nbogdand.playbook.PlaySongViewModel;
-import com.audiobook.nbogdand.playbook.R;
+import com.audiobook.nbogdand.playbook.data.Song;
 
-import androidx.annotation.*;
 
-import static com.audiobook.nbogdand.playbook.PlaySongActivity.CHANNEL_ID;
+import java.io.File;
+import java.io.IOException;
 
-public class AudioService extends Service {
+public class AudioService extends Service implements MediaPlayer.OnPreparedListener {
 
-    PlaySongViewModel playSongViewModel;
-
-    public static final String NOTIFY_PAUSE = "com.audiobook.nbogdand.playbook.pause";
-    public static final String NOTIFY_MINUS = "com.audiobook.nbogdand.playbook.minus";
-    public static final String NOTIFY_PLUS = "com.audiobook.nbogdand.playbook.plus";
+    private static MediaPlayer mediaPlayer;
+    private NotificationManager notificationManager;
 
     public static final String TAG = "FOREGROUND SERVICE:";
+    private static Song playingSong;
+
 
     @Override
     public void onCreate() {
@@ -42,32 +36,40 @@ public class AudioService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        if(intent.getAction().equals(Constants.START_FOREGROUND_SERVICE)){
-                Log.i(TAG,"foreground service started");
+        if(intent.getAction() != null) {
+            if (intent.getAction().equals(Constants.START_FOREGROUND_SERVICE)) {
+                Log.i(Constants.LOGGER_TAG, "foreground service started");
 
+                intent.setExtrasClassLoader(Song.class.getClassLoader());
+                playingSong = intent.getParcelableExtra(Constants.PLAYING_SONG);
 
-            String songName = intent.getStringExtra("songName");
+                //Song is already playing, so next action would be pause --> PAUSE_STATE
+                Notification notif = null;
+                if (playingSong != null) {
+                    notif = NotificationGenerator.createNotification(getApplicationContext(), playingSong, Constants.PAUSE_STATE);
+                }
 
-            //Song is already playing, so next action would be pause --> PAUSE_STATE
-            Notification notif = NotificationGenerator.createNotification(getApplicationContext(),songName,Constants.PAUSE_STATE);
+                playSong(getApplicationContext(), playingSong.getSongPath());
 
-            // Id is an identifier for notification
-            startForeground(Constants.NOTIFICATION_ID,notif);
+                // Id is an identifier for notification
+                if (notif != null)
+                    startForeground(Constants.NOTIFICATION_ID, notif);
+                Log.i("bogdanzzz",playingSong.getTitle());
 
+            } else
+                // Current state is paused
+                if (intent.getAction().equals(Constants.PAUSE_FOREGROUND_SERVICE)) {
+                    pauseSong();
 
-
-        }else if(intent.getAction().equals(Constants.PREV_ACTION)){
-            Log.i(TAG,"previous");
-        }else if(intent.getAction().equals(Constants.PLAY_ACTION)){
-            Log.i(TAG,"play");
-        }else if(intent.getAction().equals(Constants.NEXT_ACTION)){
-            Log.i(TAG,"next");
-        }else if(intent.getAction().equals(Constants.STOP_FOREGROUND_SERVICE)){
-            Log.i(TAG,"Stop Fservice: ");
-            stopForeground(true);
-            stopSelf();
+                } else if (intent.getAction().equals(Constants.REPLAY_FOREGROUND_SERVICE)) {
+                    pauseSong();
+                } else if (intent.getAction().equals(Constants.STOP_FOREGROUND_SERVICE)) {
+                    Log.i(TAG, "Stop Fservice: ");
+                    stopSong();
+                    stopForeground(false);
+                    // stopSelf();
+                }
         }
-
         return START_STICKY;
     }
 
@@ -82,4 +84,81 @@ public class AudioService extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
+
+    @Override
+    public void onPrepared(MediaPlayer mp) {
+        mediaPlayer.start();
+        notificationManager = getApplicationContext().getSystemService(NotificationManager.class);
+
+        Notification notification = NotificationGenerator.createNotification(getApplicationContext(),
+                                                                    playingSong,
+                                                                    Constants.PAUSE_STATE);
+        notificationManager.notify(Constants.NOTIFICATION_ID,notification);
+    }
+
+    public void playSong(Context applicationContext, String songPath){
+
+        Uri songUri = null;
+        if(songPath != null) {
+            songUri = Uri.fromFile(new File(songPath));
+        }
+        if (mediaPlayer == null && songUri != null) {
+            mediaPlayer = new MediaPlayer();
+
+            try {
+
+                //preparing mediaPlayer
+                mediaPlayer.setDataSource(applicationContext, songUri);
+                mediaPlayer.setOnPreparedListener(this);
+                mediaPlayer.prepareAsync();
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            // stop the current instance of mediaplayer
+            // then recall the playSong method to start/play the song from the beginning
+            if(mediaPlayer != null) {
+                mediaPlayer.release();
+            }
+            mediaPlayer = null;
+            if(songPath!=null)
+                playSong(applicationContext,songPath);
+        }
+    }
+
+    public void pauseSong(){
+
+        notificationManager = getApplicationContext().getSystemService(NotificationManager.class);
+
+        // If mediaPlayer is stopped and then pressed pause
+        // the app will crash
+        if(mediaPlayer != null) {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.pause();
+                Notification notification = NotificationGenerator.createNotification(getApplicationContext(),
+                                                                                playingSong,
+                                                                                Constants.PLAY_STATE);
+                notificationManager.notify(Constants.NOTIFICATION_ID,notification);
+            } else {
+                mediaPlayer.start();
+                Notification notification = NotificationGenerator.createNotification(getApplicationContext(),
+                                                                                playingSong,
+                                                                                Constants.PAUSE_STATE);
+                notificationManager.notify(Constants.NOTIFICATION_ID,notification);
+            }
+        }
+    }
+
+    public void stopSong(){
+        if(mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+
+    public static MediaPlayer getMediaPlayer(){return mediaPlayer;}
+
+
 }
