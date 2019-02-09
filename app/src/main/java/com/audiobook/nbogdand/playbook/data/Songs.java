@@ -4,6 +4,7 @@ import android.Manifest;
 import android.arch.lifecycle.MutableLiveData;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.databinding.BaseObservable;
@@ -25,8 +26,20 @@ import java.util.List;
 
 public class Songs extends BaseObservable {
 
+    private static Songs mInstance = null;
+
+    private int selectedPosition;
     private List<Song> songsList = new ArrayList<>();
     private MutableLiveData<List<Song>> songs = new MutableLiveData<>();
+
+    private Songs(){}
+
+    public static Songs getInstance(){
+        if(mInstance == null){
+            mInstance = new Songs();
+        }
+        return mInstance;
+    }
 
     public MutableLiveData<List<Song>> getSongs(){
         return songs;
@@ -41,11 +54,7 @@ public class Songs extends BaseObservable {
 
         ArrayList<Song> songsArray = findAllSongs(context);
 
-        for(int i = 0; i < songsArray.size(); i++) {
-
-            songsList.add(songsArray.get(i));
-            Log.d("Env ::","" + songsArray.get(i).getTitle());
-        }
+        songsList.addAll(songsArray);
 
         songs.setValue(songsList);
 
@@ -76,8 +85,19 @@ public class Songs extends BaseObservable {
 
         }
 
+        if(songsCursor != null) {
+            songsCursor.close();
+        }
         return songsList;
 
+    }
+
+    public void setSelectedPosition(int position){
+        selectedPosition = position;
+    }
+
+    public int getSelectedPosition(){
+        return  selectedPosition;
     }
 
 }

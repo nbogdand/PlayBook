@@ -14,7 +14,7 @@ import java.util.List;
 public class SongsViewModel extends ViewModel {
 
     // data needed
-    private Songs songs ;
+    private Songs songs = null ;
 
     //adapter for RecycleView
     private SongsAdapter adapter ;
@@ -26,7 +26,7 @@ public class SongsViewModel extends ViewModel {
 
 
     public void init(){
-        songs = new Songs();
+        songs = Songs.getInstance();
         adapter = new SongsAdapter(R.layout.item_recycleview,this);
         selected = new MutableLiveData<>();
     }
@@ -61,14 +61,14 @@ public class SongsViewModel extends ViewModel {
     public void setSongsInAdapter(List<Song> songs){
         this.adapter.setSongsList(songs);
         this.adapter.notifyDataSetChanged();
-        // Log.d("recycleviewxx ::: ", "setSongsInAdapter");
     }
 
     public Song getSongAt(Integer position){
         if (songs.getSongs().getValue() != null && position != null &&
                     songs.getSongs().getValue().size() > position){
 
-           return songs.getSongs().getValue().get(position);
+            //selectedPosition = position;
+            return songs.getSongs().getValue().get(position);
         }
 
         return null;

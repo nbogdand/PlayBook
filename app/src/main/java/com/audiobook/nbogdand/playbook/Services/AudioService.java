@@ -10,14 +10,17 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.audiobook.nbogdand.playbook.Constants;
 import com.audiobook.nbogdand.playbook.NotificationGenerator;
 import com.audiobook.nbogdand.playbook.data.Song;
+import com.audiobook.nbogdand.playbook.data.Songs;
 
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class AudioService extends Service implements MediaPlayer.OnPreparedListener {
 
@@ -70,6 +73,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                     // stopSelf();
                 }
         }
+
         return START_STICKY;
     }
 
@@ -94,6 +98,32 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                                                                     playingSong,
                                                                     Constants.PAUSE_STATE);
         notificationManager.notify(Constants.NOTIFICATION_ID,notification);
+
+        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                Songs songs = Songs.getInstance();
+                List<Song> songsList = songs.getSongsList();
+
+                // Update the position of the current playing song to the next one
+                songs.setSelectedPosition(songs.getSelectedPosition()+1);
+
+                // See if there is a next song
+                if(songsList.get(songs.getSelectedPosition()) != null) {
+
+                    Intent playNextSong = new Intent(getApplicationContext(),AudioService.class);
+                    playNextSong.setAction(Constants.START_FOREGROUND_SERVICE);
+                    playNextSong.putExtra(Constants.PLAYING_SONG,songsList.get(songs.getSelectedPosition()));
+                    getApplicationContext().startService(playNextSong);
+
+
+                }else {
+                    // If there is no next song, set the current playing position to the next song
+                    songs.setSelectedPosition(0);
+                }
+            }
+        });
+
     }
 
     public void playSong(Context applicationContext, String songPath){
@@ -115,6 +145,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
             } catch (IOException e) {
                 e.printStackTrace();
+                Toast.makeText(getApplicationContext(),"Ups! Something went wrong :(",Toast.LENGTH_LONG).show();
             }
         } else {
             // stop the current instance of mediaplayer

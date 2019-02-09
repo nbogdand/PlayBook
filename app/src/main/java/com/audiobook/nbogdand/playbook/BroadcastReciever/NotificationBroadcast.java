@@ -64,22 +64,20 @@ public class NotificationBroadcast extends BroadcastReceiver {
         }
 
         if(intent.getAction().equals(Constants.NOTIFY_MINUS)){
-            Log.i("Broadcastxx:: ","minus");
             mediaPlayer = AudioService.getMediaPlayer();
             int skipTime = 30 * 1000; // skip 30s
 
-            if(mediaPlayer != null){
+            if(mediaPlayer != null && mediaPlayer.isPlaying()){
                 mediaPlayer.seekTo(mediaPlayer.getCurrentPosition() - skipTime);
             }
 
         }
 
         if(intent.getAction().equals(Constants.NOTIFY_PLUS)){
-            Log.i("Broadcastxx:: ","plus");
             mediaPlayer = AudioService.getMediaPlayer();
             int skipTime = 30 * 1000; // skip 30s
 
-            if(mediaPlayer != null){
+            if(mediaPlayer != null && mediaPlayer.isPlaying()){
                 mediaPlayer.seekTo(mediaPlayer.getCurrentPosition() + skipTime);
             }
         }

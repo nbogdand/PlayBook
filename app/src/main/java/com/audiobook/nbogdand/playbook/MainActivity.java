@@ -21,6 +21,7 @@ import android.view.View;
 
 import com.audiobook.nbogdand.playbook.BroadcastReciever.NotificationBroadcast;
 import com.audiobook.nbogdand.playbook.data.Song;
+import com.audiobook.nbogdand.playbook.data.Songs;
 
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     static final int MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 1;
 
     private View albumItemView ;
+    public static Integer playingPosition = null;
 
 
     @Override
@@ -43,56 +45,59 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        viewModel = ViewModelProviders.of(this).get(SongsViewModel.class);
-        viewModel.init();
 
-        NotificationBroadcast mNotificationBroadcast = new NotificationBroadcast();
-        getApplicationContext().registerReceiver(mNotificationBroadcast,
+            //Opening app for the first time
+
+            viewModel = ViewModelProviders.of(this).get(SongsViewModel.class);
+            viewModel.init();
+
+            NotificationBroadcast mNotificationBroadcast = new NotificationBroadcast();
+            getApplicationContext().registerReceiver(mNotificationBroadcast,
                     new IntentFilter(Constants.NOTIFY_MINUS));
 
-        getApplicationContext().registerReceiver(mNotificationBroadcast,
-                new IntentFilter(Constants.NOTIFY_PAUSE));
+            getApplicationContext().registerReceiver(mNotificationBroadcast,
+                    new IntentFilter(Constants.NOTIFY_PAUSE));
 
-        getApplicationContext().registerReceiver(mNotificationBroadcast,
-                new IntentFilter(Constants.NOTIFY_PLUS));
+            getApplicationContext().registerReceiver(mNotificationBroadcast,
+                    new IntentFilter(Constants.NOTIFY_PLUS));
 
-        if(ActivityCompat.checkSelfPermission(this,Manifest.permission.READ_EXTERNAL_STORAGE) !=
-                PackageManager.PERMISSION_GRANTED){
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) !=
+                    PackageManager.PERMISSION_GRANTED) {
 
-            Log.d("permission","denied 1");
-            if(ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.READ_EXTERNAL_STORAGE)){
+                Log.d("permission", "denied 1");
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
 
-                Log.d("permission","denied 2");
-                ActivityCompat.requestPermissions(this,new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
-                                                        MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
+                    Log.d("permission", "denied 2");
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                            MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
 
-            }else{
+                } else {
 
-                Log.d("permission","denied 3");
-                ActivityCompat.requestPermissions(this,new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
-                                                        MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
+                    Log.d("permission", "denied 3");
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                            MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
+                }
+
+            } else {
+                Log.d("permission", "granted fetch");
+                viewModel.fetchSongs(this);
             }
 
-        }else {
-            Log.d("permission","granted fetch");
-            viewModel.fetchSongs(this);
+            viewModel.getSongs().observe(this, new Observer<List<Song>>() {
+                @Override
+                public void onChanged(@Nullable List<Song> songs) {
+                    viewModel.setSongsInAdapter(songs);
+                }
+            });
+
+            recyclerView = (RecyclerView) findViewById(R.id.recycle_view);
+            recyclerView.setAdapter(viewModel.getSongsAdapter());
+            linearLayoutManager = new LinearLayoutManager(this);
+            recyclerView.setLayoutManager(linearLayoutManager);
+            createNotificationChannel();
+
+            setUpClick();
         }
-
-        viewModel.getSongs().observe(this, new Observer<List<Song>>() {
-            @Override
-            public void onChanged(@Nullable List<Song> songs) {
-                viewModel.setSongsInAdapter(songs);
-            }
-        });
-
-        recyclerView = (RecyclerView) findViewById(R.id.recycle_view);
-        recyclerView.setAdapter(viewModel.getSongsAdapter());
-        linearLayoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(linearLayoutManager);
-        createNotificationChannel();
-
-        setUpClick();
-    }
 
     public void setUpClick(){
 
@@ -116,18 +121,14 @@ public class MainActivity extends AppCompatActivity {
                                 makeSceneTransitionAnimation(MainActivity.this, albumItemView,
                                         viewModel.getSongAt(viewModel.getSelectedPosition()).getTitle());
 
-                        // Map transitionName : song's title
-                        // to be available in the second activity
-                        /*
-                        play.putExtra("transitionName",viewModel.getSongAt(viewModel.getSelectedPosition()).getTitle());
-                        play.putExtra("artist",viewModel.getSongAt(viewModel.getSelectedPosition()).getAuthor());
-                        play.putExtra("duration",viewModel.getSongAt(viewModel.getSelectedPosition()).getLength());
-                        */
 
                         Song playingSong = new Song(viewModel.getSongAt(viewModel.getSelectedPosition()).getTitle(),
                                                     viewModel.getSongAt(viewModel.getSelectedPosition()).getAuthor(),
                                                     viewModel.getSongAt(viewModel.getSelectedPosition()).getLength(),
                                                     viewModel.getSongAt(viewModel.getSelectedPosition()).getSongPath());
+
+                        Songs songs = Songs.getInstance();
+                        songs.setSelectedPosition(viewModel.getSelectedPosition());
 
                         play.setAction(Constants.OPEN_FROM_MAIN_ACTIVITY);
                         play.putExtra(Constants.PLAYING_SONG,playingSong);
@@ -163,22 +164,4 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-    /*
-    public boolean checkPermissionREAD_EXTERNAL_STORAGE(final Context context){
-
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-
-            if(ContextCompat.checkSelfPermission(context,Manifest.permission.READ_EXTERNAL_STORAGE)
-                    != PackageManager.PERMISSION_GRANTED){
-
-                if(ActivityCompat.shouldShowRequestPermissionRationale((Activity)context))
-
-            }
-
-
-        }
-
-    }
-*/
 }
