@@ -82,6 +82,13 @@ public class NotificationBroadcast extends BroadcastReceiver {
             }
         }
 
+        if(intent.getAction().equals(Constants.STOP_FOREGROUND_SERVICE)){
+            Log.i("bogdanzzz", "onReceive: ");
+            Intent stop = new Intent(context,AudioService.class);
+            stop.setAction(Constants.STOP_FOREGROUND_SERVICE);
+            context.startService(stop);
+
+        }
 
     }
 }

@@ -7,13 +7,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.View;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import com.audiobook.nbogdand.playbook.Constants;
+import com.audiobook.nbogdand.playbook.MainActivity;
 import com.audiobook.nbogdand.playbook.NotificationGenerator;
+import com.audiobook.nbogdand.playbook.PlaySongActivity;
+import com.audiobook.nbogdand.playbook.R;
 import com.audiobook.nbogdand.playbook.data.Song;
 import com.audiobook.nbogdand.playbook.data.Songs;
 
@@ -22,7 +29,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class AudioService extends Service implements MediaPlayer.OnPreparedListener {
+public class AudioService extends Service implements MediaPlayer.OnPreparedListener{
+
+  //  private IBinder iBinder = new AudioServiceBinder();
 
     private static MediaPlayer mediaPlayer;
     private NotificationManager notificationManager;
@@ -53,25 +62,27 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                 }
 
                 playSong(getApplicationContext(), playingSong.getSongPath());
+                PlaySongActivity.SERVICE_READY_BOOL = true;
+                Log.i("bogdanzzz", "Service :: " + PlaySongActivity.SERVICE_READY_BOOL);
 
                 // Id is an identifier for notification
                 if (notif != null)
                     startForeground(Constants.NOTIFICATION_ID, notif);
-                Log.i("bogdanzzz",playingSong.getTitle());
 
-            } else
-                // Current state is paused
-                if (intent.getAction().equals(Constants.PAUSE_FOREGROUND_SERVICE)) {
-                    pauseSong();
+                //Log.i("bogdanzzz",playingSong.getTitle());
 
-                } else if (intent.getAction().equals(Constants.REPLAY_FOREGROUND_SERVICE)) {
+
+
+            } else if (intent.getAction().equals(Constants.PAUSE_FOREGROUND_SERVICE)) {
                     pauseSong();
-                } else if (intent.getAction().equals(Constants.STOP_FOREGROUND_SERVICE)) {
-                    Log.i(TAG, "Stop Fservice: ");
-                    stopSong();
-                    stopForeground(false);
-                    // stopSelf();
-                }
+            } else if (intent.getAction().equals(Constants.REPLAY_FOREGROUND_SERVICE)) {
+                    pauseSong();
+            } else if (intent.getAction().equals(Constants.STOP_FOREGROUND_SERVICE)) {
+                Log.i("bogdanzzz", "stop foreground");
+                stopForeground(true);
+                stopSong();
+                stopSelf();
+            }
         }
 
         return START_STICKY;
@@ -109,16 +120,17 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                 songs.setSelectedPosition(songs.getSelectedPosition()+1);
 
                 // See if there is a next song
-                if(songsList.get(songs.getSelectedPosition()) != null) {
+                try {
 
-                    Intent playNextSong = new Intent(getApplicationContext(),AudioService.class);
-                    playNextSong.setAction(Constants.START_FOREGROUND_SERVICE);
-                    playNextSong.putExtra(Constants.PLAYING_SONG,songsList.get(songs.getSelectedPosition()));
-                    getApplicationContext().startService(playNextSong);
+                    if(songsList.get(songs.getSelectedPosition()) != null) {
 
+                        Intent playNextSong = new Intent(getApplicationContext(), AudioService.class);
+                        playNextSong.setAction(Constants.START_FOREGROUND_SERVICE);
+                        playNextSong.putExtra(Constants.PLAYING_SONG, songsList.get(songs.getSelectedPosition()));
+                        getApplicationContext().startService(playNextSong);
+                    }
 
-                }else {
-                    // If there is no next song, set the current playing position to the next song
+                }catch (Exception exc){  // If there is no next song, set the current playing position to the next song
                     songs.setSelectedPosition(0);
                 }
             }
@@ -190,6 +202,12 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public static MediaPlayer getMediaPlayer(){return mediaPlayer;}
+/*
+    public class AudioServiceBinder extends Binder {
+        public AudioService getAudioService(){
+            return AudioService.this;
+        }
 
-
+    }
+*/
 }

@@ -69,12 +69,14 @@ public class NotificationGenerator {
         Intent pause = new Intent();
         Intent minus = new Intent();
         Intent plus = new Intent();
+        Intent stop = new Intent();
 
         pause.putExtra(Constants.PLAYING_SONG,playingSong);
 
         pause.setAction(Constants.NOTIFY_PAUSE);
         minus.setAction(Constants.NOTIFY_MINUS);
         plus.setAction(Constants.NOTIFY_PLUS);
+        stop.setAction(Constants.STOP_FOREGROUND_SERVICE);
 
         // Setting up the pendingIntent for buttons in notification
         // layout to do the appropriate action (rewind 30s,pause,fastforward 30s)
@@ -86,6 +88,9 @@ public class NotificationGenerator {
 
         PendingIntent plusPending = PendingIntent.getBroadcast(context,0,plus,PendingIntent.FLAG_UPDATE_CURRENT);
         view.setOnClickPendingIntent(R.id.notif_plus30,plusPending);
+
+        PendingIntent stopPending = PendingIntent.getBroadcast(context,0,stop,PendingIntent.FLAG_UPDATE_CURRENT);
+        view.setOnClickPendingIntent(R.id.stopService,stopPending);
 
     }
 

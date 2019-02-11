@@ -28,14 +28,14 @@
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="38dp"
-            android:weightSum="3">
+            android:weightSum="10">
 
             <ImageView
                 android:id="@+id/notif_minus30"
                 android:src="@drawable/minus30"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
-                android:layout_weight="1"/>
+                android:layout_weight="3"/>
 
 
             <ImageView
@@ -43,16 +43,21 @@
                 android:src="@drawable/pause"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
-                android:layout_weight="1"/>
+                android:layout_weight="3"/>
 
             <ImageView
                 android:id="@+id/notif_plus30"
                 android:src="@drawable/plus30"
                 android:layout_width="38dp"
                 android:layout_height="38dp"
+                android:layout_weight="3"/>
+
+            <ImageView
+                android:id="@+id/stopService"
+                android:src="@drawable/stop_service"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
                 android:layout_weight="1"/>
-
-
 
         </LinearLayout>
 

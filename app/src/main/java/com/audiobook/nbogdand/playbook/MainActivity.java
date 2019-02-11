@@ -60,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
 
             getApplicationContext().registerReceiver(mNotificationBroadcast,
                     new IntentFilter(Constants.NOTIFY_PLUS));
+            getApplicationContext().registerReceiver(mNotificationBroadcast,
+                    new IntentFilter(Constants.STOP_FOREGROUND_SERVICE));
 
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) !=
                     PackageManager.PERMISSION_GRANTED) {
