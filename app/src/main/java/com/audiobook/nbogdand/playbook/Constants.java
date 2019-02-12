@@ -26,6 +26,6 @@ public class Constants {
     public static final String OPEN_NOTIFICATION = "com.audiobook.nbogdand.playbook.openNotification";
     public static final String OPEN_FROM_MAIN_ACTIVITY = "com.audiobook.nbogdand.playbook.openFromMainActivity";
 
-    public static final String LOGGER_TAG = "bogdan12345zzz";
+    public static final String LOGGER_TAG = "bogdanzzz";
 
 }

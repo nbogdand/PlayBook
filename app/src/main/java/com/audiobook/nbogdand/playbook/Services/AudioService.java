@@ -29,9 +29,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import javax.security.auth.login.LoginException;
+
 public class AudioService extends Service implements MediaPlayer.OnPreparedListener{
 
-  //  private IBinder iBinder = new AudioServiceBinder();
+    private IBinder iBinder = new AudioServiceBinder();
+    private Handler handler;
+    private int progress,maxValue = 1000;
+    private Boolean isPaused;
 
     private static MediaPlayer mediaPlayer;
     private NotificationManager notificationManager;
@@ -43,6 +48,8 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onCreate() {
         super.onCreate();
+        handler = new Handler();
+        progress = 0;
     }
 
     @Override
@@ -63,7 +70,6 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
                 playSong(getApplicationContext(), playingSong.getSongPath());
                 PlaySongActivity.SERVICE_READY_BOOL = true;
-                Log.i("bogdanzzz", "Service :: " + PlaySongActivity.SERVICE_READY_BOOL);
 
                 // Id is an identifier for notification
                 if (notif != null)
@@ -97,7 +103,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return iBinder;
     }
 
     @Override
@@ -202,12 +208,67 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public static MediaPlayer getMediaPlayer(){return mediaPlayer;}
-/*
+
     public class AudioServiceBinder extends Binder {
         public AudioService getAudioService(){
             return AudioService.this;
         }
 
     }
-*/
+
+    public void changeProgressForSeekbar(){
+
+        isPaused = !mediaPlayer.isPlaying();
+
+        Log.i("bogdanzzz", "changeProgressForSeekbar: ");
+
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                if(progress >= maxValue ){
+                    Log.i("bogdanzzz", "run: removing callbacks");
+                    isPaused = true;
+                  //  handler.removeCallbacks(this);
+                    progress = 0;
+
+                }else{
+                    if(mediaPlayer.isPlaying()) {
+                        float floatProgress = ((float)mediaPlayer.getCurrentPosition())/mediaPlayer.getDuration();
+                        progress = (int) (floatProgress * 1000);
+                        Log.i("bogdanzzz", "run: " + progress);
+                        handler.postDelayed(this, 100);
+                    }
+                }
+
+            }
+        };
+        handler.postDelayed(runnable,100);
+    }
+
+
+
+    //
+    // Methods for clients
+    //
+
+    public Boolean getIsPaused(){
+        isPaused = !mediaPlayer.isPlaying();
+        return  isPaused;
+
+    }
+
+    public int getProgress(){return progress;}
+
+    public int getMaxValue(){return maxValue;}
+
+    public void resetTask(){
+        progress = 0;
+    }
+
+    // When the app is removed from recently used apps
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        super.onTaskRemoved(rootIntent);
+         stopSelf();
+    }
 }

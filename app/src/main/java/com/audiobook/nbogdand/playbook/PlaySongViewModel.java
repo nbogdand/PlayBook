@@ -1,13 +1,18 @@
 package com.audiobook.nbogdand.playbook;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.IBinder;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -16,59 +21,39 @@ import com.audiobook.nbogdand.playbook.data.Song;
 
 import java.util.ArrayList;
 
-public class PlaySongViewModel extends ViewModel implements MediaPlayer.OnPreparedListener {
+public class PlaySongViewModel extends ViewModel{
 
-    private static MediaPlayer mediaPlayer;
-/*
-    public void playSong(Context applicationContext, String path){
+    private MutableLiveData<AudioService.AudioServiceBinder> mBinder = new MutableLiveData<>();
+    private MutableLiveData<Boolean> isProgressUpdating = new MutableLiveData<>();
 
-        Uri songUri = Uri.fromFile(new File(path));
-
-         if (mediaPlayer == null) {
-                mediaPlayer = new MediaPlayer();
-
-                try {
-                    //preparing mediaPlayer
-                    //Log.d("playSong zxc", "am ajuns pana aici");
-                    mediaPlayer.setDataSource(applicationContext, songUri);
-                    mediaPlayer.setOnPreparedListener(this);
-                    mediaPlayer.prepareAsync();
-                    mediaPlayer.start();
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                // stop the current instance of mediaplayer
-                // then recall the playSong method to start/play the song from the beginning
-                mediaPlayer.release();
-                mediaPlayer = null;
-                playSong(applicationContext,path);
-         }
-    }
-
-
-    public void pauseSong(){
-
-        // If mediaPlayer is stopped and then pressed pause
-        // the app will crash
-        if(mediaPlayer != null) {
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.pause();
-            } else {
-                mediaPlayer.start();
-            }
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.i("bogdanzzz", "onServiceConnected: connected");
+            AudioService.AudioServiceBinder binder = (AudioService.AudioServiceBinder)service;
+            mBinder.postValue(binder);
         }
-    }
 
-    public void stopSong(){
-        if(mediaPlayer != null) {
-            mediaPlayer.release();
-            mediaPlayer = null;
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.i("bogdanzzz", "onServiceDisconnected: disconnected");
+            mBinder.postValue(null);
         }
+    };
+
+    public LiveData<Boolean> getIsProgressUpdating(){
+        return isProgressUpdating;
     }
 
-    */
+    public void setIsProgressUpdating(Boolean bool){
+        isProgressUpdating.postValue(bool);
+    }
+
+    public LiveData<AudioService.AudioServiceBinder> getBinder(){
+        return mBinder;
+    }
+
+    public ServiceConnection getServiceConnection() {return serviceConnection;}
 
     public void playSong(Context context,Song playingSong){
         Intent statPlaying = new Intent(context, AudioService.class);
@@ -91,47 +76,4 @@ public class PlaySongViewModel extends ViewModel implements MediaPlayer.OnPrepar
 
     }
 
-    public static MediaPlayer getMediaPlayer(){return mediaPlayer;}
-
-    public String getSongPath(Context context,String title,String artist){
-
-        ArrayList<Song> songsList = new ArrayList<>();
-
-        ContentResolver contentResolver = context.getContentResolver();
-        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        Cursor songsCursor = contentResolver.query(uri,null,null,null,null);
-
-        if (songsCursor != null && songsCursor.moveToFirst()){
-
-            int songTitle = songsCursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
-            int songAuthor = songsCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST);
-            int duration = songsCursor.getColumnIndex(MediaStore.Audio.Media.DURATION);
-            int column_index = songsCursor.getColumnIndex(MediaStore.Audio.Media.DATA);
-
-            do{
-                Song song = new Song(songsCursor.getString(songTitle),
-                        songsCursor.getString(songAuthor),
-                        21,songsCursor.getString(column_index));
-
-                if(songsCursor.getString(songTitle).equals(title) && songsCursor.getString(songAuthor).equals(artist)) {
-                    Log.d("uri raw",uri.toString());
-                    Log.d("uri songs:::",songsCursor.getString(songTitle));
-                    Log.d("uri songs", songsCursor.getString(songAuthor));
-                    Log.d("uri after", ContentUris.withAppendedId(uri, songsCursor.getInt(songTitle)).toString());
-                    Log.d("uri url??",songsCursor.getString(column_index));
-                    return songsCursor.getString(column_index);
-                }
-
-            } while ( songsCursor.moveToNext());
-
-        }
-
-        return null;
-
-    }
-
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-        mp.start();
-    }
 }

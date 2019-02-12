@@ -1,8 +1,10 @@
 package com.audiobook.nbogdand.playbook;
 
 import android.Manifest;
+import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
@@ -13,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.telecom.Connection;
@@ -25,6 +28,8 @@ import com.audiobook.nbogdand.playbook.Services.AudioService;
 import com.audiobook.nbogdand.playbook.data.Song;
 import com.audiobook.nbogdand.playbook.databinding.PlaySongActivityBinding;
 
+import java.net.Inet4Address;
+
 import static com.audiobook.nbogdand.playbook.MainActivity.MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE;
 
 public class PlaySongActivity extends AppCompatActivity {
@@ -35,8 +40,8 @@ public class PlaySongActivity extends AppCompatActivity {
 
     private SeekBar seekBar;
     private static MediaPlayer mediaPlayer;
-    private Handler handler = new Handler();
-    private Runnable runnable;
+ //   private Handler handler = new Handler();
+//    private Runnable runnable;
 
     private AudioService audioService;
     private ServiceConnection serviceConnection;
@@ -71,6 +76,14 @@ public class PlaySongActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(playSongViewModel.getBinder() != null){
+          //  unbindService(playSongViewModel.getServiceConnection());
+        }
     }
 
     @Override
@@ -133,29 +146,20 @@ public class PlaySongActivity extends AppCompatActivity {
                 } else {
                     // Log.i(Constants.LOGGER_TAG,"Inainte de startMyService()");
                     startMyService();
-/*
-                    serviceConnection = new ServiceConnection() {
+                    setObservers();
+
+
+                    // Need to start delayed toggle updates because
+                    // service needs longer time to initialize
+                    // and otherwise it will result in null AudioService object
+                    int delay = 1 * 1000;
+                    final Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
                         @Override
-                        public void onServiceConnected(ComponentName name, IBinder service) {
-                            AudioService.AudioServiceBinder audioServiceBinder = (AudioService.AudioServiceBinder) service;
-                            audioService = audioServiceBinder.getAudioService();
-                            mediaPlayer = audioService.getMediaPlayer();
-                            Log.i("bogdanzzz", "BOUND SERVICE ???? :");
-
-                            if(mediaPlayer == null){
-                                Log.i("bogdanzzz", "MediaPlayer NULL ");
-                            }else{
-                                Log.i("bogdanzzz", "MediaPlayer BUN ");
-                            }
+                        public void run() {
+                            toggleUpdates();
                         }
-
-                        @Override
-                        public void onServiceDisconnected(ComponentName name) {
-
-                        }
-                    };
-                    */
-
+                    },delay);
                 }
 
             }
@@ -170,7 +174,7 @@ public class PlaySongActivity extends AppCompatActivity {
         binding.setApplicationContext(getApplicationContext());
         binding.setPlayingSong(playingSong);
         binding.setPlayViewModel(playSongViewModel);
-
+        seekBar = findViewById(R.id.seekBar);
     }
 
     public void startMyService(){
@@ -181,8 +185,9 @@ public class PlaySongActivity extends AppCompatActivity {
         Intent serviceIntent = new Intent(getApplicationContext(), AudioService.class);
         serviceIntent.setAction(Constants.START_FOREGROUND_SERVICE);
         serviceIntent.putExtra(Constants.PLAYING_SONG,playingSong);
-        startService(serviceIntent);
+        startForegroundService(serviceIntent);
 
+        bindService();
     }
 
     public void stopMyService(){
@@ -193,22 +198,89 @@ public class PlaySongActivity extends AppCompatActivity {
         stopService(serviceIntent);
     }
 
+    private void bindService(){
+        Intent serviceIntent = new Intent(this,AudioService.class);
+        bindService(serviceIntent,playSongViewModel.getServiceConnection(), Context.BIND_AUTO_CREATE);
+    }
 
-    private void changeSeekbar(){
+    private void toggleUpdates(){
+        if(audioService != null){
 
-        if(mediaPlayer.isPlaying()){
-            runnable = new Runnable() {
-                @Override
-                public void run() {
-                    //changeSeekbar();
-                    seekBar.setProgress(mediaPlayer.getCurrentPosition());
-                    handler.postDelayed(runnable,50);
+            // start changing progress bar
+            audioService.changeProgressForSeekbar();
+            playSongViewModel.setIsProgressUpdating(true);
+
+        }else{
+            Log.i("bogdanzzz", "toggleUpdates: audio service is NULL");
+        }
+    }
+
+    private void setObservers(){
+
+        playSongViewModel.getBinder().observe(this, new Observer<AudioService.AudioServiceBinder>() {
+            @Override
+            public void onChanged(@Nullable AudioService.AudioServiceBinder audioServiceBinder) {
+                if(audioServiceBinder != null){
+
+                    Log.i("bogdanzzz", "onChanged: bound to service");
+                    audioService = audioServiceBinder.getAudioService();
+
+                    if(audioService == null){
+                        Log.i("bogdanzz", "onChanged: audioService is still null");
+                    }else{
+                        Log.i("bogdanzz", "onChanged: audioService is OK");
+                    }
+
+                }else{
+                    Log.i("bogdanzz", "onChanged: unbound from service");
+                    audioService = null;
+                }
+            }
+        });
+
+        playSongViewModel.getIsProgressUpdating().observe(this, new Observer<Boolean>() {
+
+            @Override
+            public void onChanged(@Nullable final Boolean aBoolean) {
+
+                Log.i("bogdanzzz", "onChanged: isProgressUpdating");
+
+                final Handler handler = new Handler();
+                final Runnable runnable = new Runnable() {
+                    @Override
+                    public void run() {
+
+                        if(playSongViewModel.getIsProgressUpdating().getValue() != null){
+
+                            // Meaning the service is bound
+                            if(playSongViewModel.getBinder().getValue() != null) {
+
+
+                                if(audioService.getProgress() == audioService.getMaxValue()){
+                                    playSongViewModel.setIsProgressUpdating(false);
+                                }
+
+                                seekBar.setProgress(audioService.getProgress());
+                                seekBar.setMax(audioService.getMaxValue());
+
+                            }
+
+                            handler.postDelayed(this,100);
+
+                        }else{
+                            handler.postDelayed(this,100);
+                        }
+                    }
+                };
+
+                if(aBoolean){
+                    handler.postDelayed(runnable,100);
                 }
 
-            };
+            }
+        });
 
 
-        }
 
     }
 
