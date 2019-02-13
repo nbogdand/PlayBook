@@ -25,6 +25,7 @@ public class PlaySongViewModel extends ViewModel{
 
     private MutableLiveData<AudioService.AudioServiceBinder> mBinder = new MutableLiveData<>();
     private MutableLiveData<Boolean> isProgressUpdating = new MutableLiveData<>();
+    private MutableLiveData<Song> playingSong = new MutableLiveData<>();
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
@@ -54,6 +55,8 @@ public class PlaySongViewModel extends ViewModel{
     }
 
     public ServiceConnection getServiceConnection() {return serviceConnection;}
+
+    public LiveData<Song> getPlayingSong(){ return playingSong; }
 
     public void playSong(Context context,Song playingSong){
         Intent statPlaying = new Intent(context, AudioService.class);

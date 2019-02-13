@@ -38,6 +38,8 @@ public class PlaySongActivity extends AppCompatActivity {
     private PlaySongActivityBinding binding;
     private Song playingSong;
 
+    private boolean songHasBeenChanged = false;
+
     private SeekBar seekBar;
     private static MediaPlayer mediaPlayer;
  //   private Handler handler = new Handler();
@@ -250,18 +252,18 @@ public class PlaySongActivity extends AppCompatActivity {
                     @Override
                     public void run() {
 
-                        if(playSongViewModel.getIsProgressUpdating().getValue() != null){
+                        if(playSongViewModel.getIsProgressUpdating().getValue() != null ){
 
                             // Meaning the service is bound
                             if(playSongViewModel.getBinder().getValue() != null) {
 
-
-                                if(audioService.getProgress() == audioService.getMaxValue()){
-                                    playSongViewModel.setIsProgressUpdating(false);
+                                if(audioService.getSongHasBeenChanged()) {
+                                    binding.setPlayingSong(AudioService.getPlayingSong());
                                 }
 
                                 seekBar.setProgress(audioService.getProgress());
                                 seekBar.setMax(audioService.getMaxValue());
+
 
                             }
 

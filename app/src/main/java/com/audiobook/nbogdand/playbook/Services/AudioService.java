@@ -35,8 +35,8 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
     private IBinder iBinder = new AudioServiceBinder();
     private Handler handler;
-    private int progress,maxValue = 1000;
-    private Boolean isPaused;
+    private int progress, maxValue;
+    private boolean songHasBeenChanged, isPaused;
 
     private static MediaPlayer mediaPlayer;
     private NotificationManager notificationManager;
@@ -50,6 +50,9 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
         super.onCreate();
         handler = new Handler();
         progress = 0;
+        maxValue = 1000;
+        isPaused = false;
+        songHasBeenChanged = false;
     }
 
     @Override
@@ -129,7 +132,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                 try {
 
                     if(songsList.get(songs.getSelectedPosition()) != null) {
-
+                        songHasBeenChanged = true;
                         Intent playNextSong = new Intent(getApplicationContext(), AudioService.class);
                         playNextSong.setAction(Constants.START_FOREGROUND_SERVICE);
                         playNextSong.putExtra(Constants.PLAYING_SONG, songsList.get(songs.getSelectedPosition()));
@@ -192,7 +195,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                 notificationManager.notify(Constants.NOTIFICATION_ID,notification);
             } else {
                 mediaPlayer.start();
-                Notification notification = NotificationGenerator.createNotification(getApplicationContext(),
+               Notification notification = NotificationGenerator.createNotification(getApplicationContext(),
                                                                                 playingSong,
                                                                                 Constants.PAUSE_STATE);
                 notificationManager.notify(Constants.NOTIFICATION_ID,notification);
@@ -218,27 +221,17 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
     public void changeProgressForSeekbar(){
 
-        isPaused = !mediaPlayer.isPlaying();
-
         Log.i("bogdanzzz", "changeProgressForSeekbar: ");
 
         final Runnable runnable = new Runnable() {
             @Override
             public void run() {
-                if(progress >= maxValue ){
-                    Log.i("bogdanzzz", "run: removing callbacks");
-                    isPaused = true;
-                  //  handler.removeCallbacks(this);
-                    progress = 0;
 
-                }else{
-                    if(mediaPlayer.isPlaying()) {
-                        float floatProgress = ((float)mediaPlayer.getCurrentPosition())/mediaPlayer.getDuration();
-                        progress = (int) (floatProgress * 1000);
-                        Log.i("bogdanzzz", "run: " + progress);
-                        handler.postDelayed(this, 100);
-                    }
-                }
+                float floatProgress = ((float) mediaPlayer.getCurrentPosition()) / mediaPlayer.getDuration();
+                progress = (int) (floatProgress * 1000);
+                Log.i("bogdanzzz", "run: " + progress);
+                handler.postDelayed(this, 100);
+
 
             }
         };
@@ -251,15 +244,17 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     // Methods for clients
     //
 
-    public Boolean getIsPaused(){
-        isPaused = !mediaPlayer.isPlaying();
-        return  isPaused;
+    public boolean getIsPaused(){ return isPaused; }
 
+    public boolean getSongHasBeenChanged(){
+        return songHasBeenChanged;
     }
 
     public int getProgress(){return progress;}
 
     public int getMaxValue(){return maxValue;}
+
+    public static Song getPlayingSong(){ return playingSong; }
 
     public void resetTask(){
         progress = 0;
