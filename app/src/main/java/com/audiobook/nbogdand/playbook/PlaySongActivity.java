@@ -3,9 +3,11 @@ package com.audiobook.nbogdand.playbook;
 import android.Manifest;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
@@ -17,10 +19,12 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.telecom.Connection;
 import android.telecom.ConnectionService;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 
@@ -38,16 +42,9 @@ public class PlaySongActivity extends AppCompatActivity {
     private PlaySongActivityBinding binding;
     private Song playingSong;
 
-    private boolean songHasBeenChanged = false;
-
     private SeekBar seekBar;
-    private static MediaPlayer mediaPlayer;
- //   private Handler handler = new Handler();
-//    private Runnable runnable;
 
     private AudioService audioService;
-    private ServiceConnection serviceConnection;
-
 
     public static boolean SERVICE_READY_BOOL = false;
 
@@ -78,13 +75,14 @@ public class PlaySongActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        //unbindService(playSongViewModel.getServiceConnection());
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         if(playSongViewModel.getBinder() != null){
-          //  unbindService(playSongViewModel.getServiceConnection());
+              //unbindService(playSongViewModel.getServiceConnection());
         }
     }
 
@@ -95,6 +93,7 @@ public class PlaySongActivity extends AppCompatActivity {
         // If activity is open from notification
         // It also means it was open at least 1 before and all things are initialized
             if (getIntent().getAction().equals(Constants.OPEN_NOTIFICATION)) {
+
                 Song currentSong = getIntent().getParcelableExtra(Constants.PLAYING_SONG);
                 Log.i("OPENNOTIFICATION ",currentSong.getTitle() + " ");
                 playSongViewModel = ViewModelProviders.of(this).get(PlaySongViewModel.class);
@@ -104,68 +103,85 @@ public class PlaySongActivity extends AppCompatActivity {
                 binding.setPlayViewModel(playSongViewModel);
                 binding.setPlayingSong(currentSong);
 
-            } else
+                long mm = currentSong.getLength() / 60 / 1000;
+                long ss = currentSong.getLength() / 1000 % 60;
+                String duration = String.format("%02d:%02d",mm,ss);
+                binding.setDuration(duration);
 
+                seekBar = findViewById(R.id.seekBar);
+
+                bindService();
+                setObservers();
+                int delay = 5 * 100;
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        toggleUpdates();
+                    }
+                }, delay);
+
+            } else {
 
                 //If activity is open from main activity
-                if(getIntent().getAction().equals(Constants.OPEN_FROM_MAIN_ACTIVITY)){
+                if (getIntent().getAction().equals(Constants.OPEN_FROM_MAIN_ACTIVITY)) {
 
-                // Retrieving transition name from intent's extras
-                String imageTransitionName = null;
+                    // Retrieving transition name from intent's extras
+                    String imageTransitionName = null;
 
-                playingSong = (Song) getIntent().getParcelableExtra(Constants.PLAYING_SONG);
-
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && playingSong != null) {
-                    imageTransitionName = playingSong.getTitle();
-                }
-                // Initialize viewModel and databinding
-                init();
+                    playingSong = (Song) getIntent().getParcelableExtra(Constants.PLAYING_SONG);
 
 
-                // Setting the transition name to ImageView (shared
-                // element transition)
-                ImageView albumArtImageView = findViewById(R.id.album_art);
-                if (imageTransitionName != null) {
-                    albumArtImageView.setTransitionName(imageTransitionName);
-                }
-
-
-                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) !=
-                        PackageManager.PERMISSION_GRANTED) {
-
-                    if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-
-                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                                MY_PERMISSION_REQUEST);
-
-                    } else {
-
-                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                                MY_PERMISSION_REQUEST);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && playingSong != null) {
+                        imageTransitionName = playingSong.getTitle();
                     }
 
-                } else {
-                    // Log.i(Constants.LOGGER_TAG,"Inainte de startMyService()");
-                    startMyService();
-                    setObservers();
+                    // Initialize viewModel and databinding
+                    init();
+
+                    // Setting the transition name to ImageView (shared
+                    // element transition)
+                    ImageView albumArtImageView = findViewById(R.id.album_art);
+                    if (imageTransitionName != null) {
+                        albumArtImageView.setTransitionName(imageTransitionName);
+                    }
 
 
-                    // Need to start delayed toggle updates because
-                    // service needs longer time to initialize
-                    // and otherwise it will result in null AudioService object
-                    int delay = 1 * 1000;
-                    final Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            toggleUpdates();
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) !=
+                            PackageManager.PERMISSION_GRANTED) {
+
+                        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+
+                            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                    MY_PERMISSION_REQUEST);
+
+                        } else {
+
+                            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                                    MY_PERMISSION_REQUEST);
                         }
-                    },delay);
+
+                    } else {
+                        // Log.i(Constants.LOGGER_TAG,"Inainte de startMyService()");
+                        startMyService();
+                        setObservers();
+
+
+                        // Need to start delayed toggle updates because
+                        // service needs longer time to initialize
+                        // and otherwise it will result in null AudioService object
+                        int delay = 1 * 1000;
+                        final Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                toggleUpdates();
+                            }
+                        }, delay);
+                    }
+
                 }
-
             }
-
 
     }
 
@@ -176,7 +192,14 @@ public class PlaySongActivity extends AppCompatActivity {
         binding.setApplicationContext(getApplicationContext());
         binding.setPlayingSong(playingSong);
         binding.setPlayViewModel(playSongViewModel);
+
         seekBar = findViewById(R.id.seekBar);
+
+        long mm = playingSong.getLength() / 60 / 1000;
+        long ss = playingSong.getLength() / 1000 % 60;
+        String duration = String.format("%02d:%02d",mm,ss);
+        binding.setDuration(duration);
+
     }
 
     public void startMyService(){
@@ -211,6 +234,29 @@ public class PlaySongActivity extends AppCompatActivity {
             // start changing progress bar
             audioService.changeProgressForSeekbar();
             playSongViewModel.setIsProgressUpdating(true);
+
+            seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(final SeekBar seekBar, final int progress, boolean fromUser) {
+                    if(fromUser){
+                        audioService.setProgress(progress);
+                        AudioService.getMediaPlayer().seekTo(progress * AudioService.getMediaPlayer().getDuration() /1000);
+
+                        seekBar.setProgress(progress);
+
+                    }
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+
+                }
+            });
 
         }else{
             Log.i("bogdanzzz", "toggleUpdates: audio service is NULL");
@@ -252,7 +298,7 @@ public class PlaySongActivity extends AppCompatActivity {
                     @Override
                     public void run() {
 
-                        if(playSongViewModel.getIsProgressUpdating().getValue() != null ){
+                        if(playSongViewModel.getIsProgressUpdating().getValue() != null && AudioService.getMediaPlayer()!= null){
 
                             // Meaning the service is bound
                             if(playSongViewModel.getBinder().getValue() != null) {
@@ -264,7 +310,13 @@ public class PlaySongActivity extends AppCompatActivity {
                                 seekBar.setProgress(audioService.getProgress());
                                 seekBar.setMax(audioService.getMaxValue());
 
+                                long currentPositionInMs = audioService.getProgress() *
+                                        AudioService.getMediaPlayer().getDuration() /1000;
 
+                                long mm = currentPositionInMs / 60 / 1000;
+                                long ss = currentPositionInMs /1000 % 60;
+                                String duration = String.format("%02d:%02d",mm,ss);
+                                binding.setCurrentPosition(duration);
                             }
 
                             handler.postDelayed(this,100);

@@ -78,8 +78,6 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                 if (notif != null)
                     startForeground(Constants.NOTIFICATION_ID, notif);
 
-                //Log.i("bogdanzzz",playingSong.getTitle());
-
 
 
             } else if (intent.getAction().equals(Constants.PAUSE_FOREGROUND_SERVICE)) {
@@ -87,7 +85,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
             } else if (intent.getAction().equals(Constants.REPLAY_FOREGROUND_SERVICE)) {
                     pauseSong();
             } else if (intent.getAction().equals(Constants.STOP_FOREGROUND_SERVICE)) {
-                Log.i("bogdanzzz", "stop foreground");
+
                 stopForeground(true);
                 stopSong();
                 stopSelf();
@@ -227,11 +225,12 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
             @Override
             public void run() {
 
-                float floatProgress = ((float) mediaPlayer.getCurrentPosition()) / mediaPlayer.getDuration();
-                progress = (int) (floatProgress * 1000);
-                Log.i("bogdanzzz", "run: " + progress);
-                handler.postDelayed(this, 100);
-
+                if(mediaPlayer != null) {
+                    float floatProgress = ((float) mediaPlayer.getCurrentPosition()) / mediaPlayer.getDuration();
+                    progress = (int) (floatProgress * 1000);
+                   // Log.i("bogdanzzz", "run: " + progress);
+                    handler.postDelayed(this, 100);
+                }
 
             }
         };
@@ -252,6 +251,8 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
 
     public int getProgress(){return progress;}
 
+    public void setProgress(int progress){ this.progress = progress;}
+
     public int getMaxValue(){return maxValue;}
 
     public static Song getPlayingSong(){ return playingSong; }
@@ -264,6 +265,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-         stopSelf();
+        stopSong();
+        stopSelf();
     }
 }

@@ -3,61 +3,63 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="60dp"
+    android:layout_height="50dp"
     android:weightSum="10">
 
     <ImageView
         android:src="@drawable/album_art"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_weight="0"/>
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="50dp"
         android:layout_weight="10">
 
         <TextView
             android:id="@+id/song_title_notif"
             android:layout_width="match_parent"
-            android:layout_height="22dp"
+            android:layout_height="20dp"
             style="@style/TextAppearance.Compat.Notification.Title"/>
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="38dp"
+            android:layout_height="30dp"
             android:weightSum="10">
 
             <ImageView
                 android:id="@+id/notif_minus30"
-                android:src="@drawable/minus30"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
+                android:src="@drawable/minus30s"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_weight="3"/>
 
 
             <ImageView
                 android:id="@+id/notif_pause"
                 android:src="@drawable/pause"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
-                android:layout_weight="3"/>
-
-            <ImageView
-                android:id="@+id/notif_plus30"
-                android:src="@drawable/plus30"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_weight="3"/>
 
             <ImageView
                 android:id="@+id/stopService"
-                android:src="@drawable/stop_service"
-                android:layout_width="38dp"
-                android:layout_height="38dp"
+                android:src="@drawable/stop"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_weight="1"/>
+
+            <ImageView
+                android:id="@+id/notif_plus30"
+                android:src="@drawable/plus30s"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_weight="3"/>
+
+
 
         </LinearLayout>
 

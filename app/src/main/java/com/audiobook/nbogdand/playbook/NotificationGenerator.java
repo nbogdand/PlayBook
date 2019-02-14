@@ -23,11 +23,6 @@ public class NotificationGenerator {
         Intent notificationIntent = new Intent(context, PlaySongActivity.class);
         notificationIntent.setAction(Constants.OPEN_NOTIFICATION);
         notificationIntent.putExtra(Constants.PLAYING_SONG,playingSong);
- //       notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-/*        PendingIntent pendingIntent = PendingIntent.getActivity(context,0,
-                                                        notificationIntent,
-                                                        PendingIntent.FLAG_UPDATE_CURRENT);
-*/
         PendingIntent pendingIntent = TaskStackBuilder.create(context)
                                                 .addNextIntentWithParentStack(notificationIntent)
                                                 .getPendingIntent(0,PendingIntent.FLAG_UPDATE_CURRENT);
@@ -38,7 +33,6 @@ public class NotificationGenerator {
         NotificationCompat.Builder notification = new NotificationCompat.Builder(context,CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle("PlayBook")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentIntent(pendingIntent)
                 .setStyle(new NotificationCompat.DecoratedCustomViewStyle())
                 .setCustomContentView(notificationLayout)
