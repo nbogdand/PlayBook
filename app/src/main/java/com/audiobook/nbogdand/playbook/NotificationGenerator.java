@@ -1,11 +1,13 @@
 package com.audiobook.nbogdand.playbook;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -20,15 +22,16 @@ public class NotificationGenerator {
 
     public static Notification createNotification(Context context, Song playingSong, String nextState){
 
+        Log.i("bogdanzzz", "createNotification: apleat");
+
         Intent notificationIntent = new Intent(context, PlaySongActivity.class);
         notificationIntent.setAction(Constants.OPEN_NOTIFICATION);
         notificationIntent.putExtra(Constants.PLAYING_SONG,playingSong);
         PendingIntent pendingIntent = TaskStackBuilder.create(context)
                                                 .addNextIntentWithParentStack(notificationIntent)
-                                                .getPendingIntent(0,PendingIntent.FLAG_UPDATE_CURRENT);
+                                                .getPendingIntent(0,PendingIntent.FLAG_ONE_SHOT);
 
         RemoteViews notificationLayout = new RemoteViews(context.getPackageName(), R.layout.big_notification);
-
 
         NotificationCompat.Builder notification = new NotificationCompat.Builder(context,CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)

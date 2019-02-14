@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
             viewModel = ViewModelProviders.of(this).get(SongsViewModel.class);
             viewModel.init();
 
-            NotificationBroadcast mNotificationBroadcast = new NotificationBroadcast();
+            NotificationBroadcast mNotificationBroadcast = NotificationBroadcast.getInstance();
             getApplicationContext().registerReceiver(mNotificationBroadcast,
                     new IntentFilter(Constants.NOTIFY_MINUS));
 

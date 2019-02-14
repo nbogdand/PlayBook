@@ -15,13 +15,25 @@ import com.audiobook.nbogdand.playbook.data.Song;
 
 public class NotificationBroadcast extends BroadcastReceiver {
 
+    public static NotificationBroadcast mNotificationBroadcast = null;
 
     private static MediaPlayer mediaPlayer;
+
+    public static NotificationBroadcast getInstance(){
+        if(mNotificationBroadcast == null){
+            mNotificationBroadcast = new NotificationBroadcast();
+        }
+        return mNotificationBroadcast;
+    }
+
+    private NotificationBroadcast(){}
 
     @Override
     public void onReceive(Context context, Intent intent) {
 
         if(intent.getAction().equals(Constants.NOTIFY_PAUSE)){
+
+            Log.i("bogdanzzz", "onReceive: notif pause");
 
             mediaPlayer = AudioService.getMediaPlayer();
             NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
@@ -64,6 +76,7 @@ public class NotificationBroadcast extends BroadcastReceiver {
         }
 
         if(intent.getAction().equals(Constants.NOTIFY_MINUS)){
+
             mediaPlayer = AudioService.getMediaPlayer();
             int skipTime = 30 * 1000; // skip 30s
 
@@ -83,7 +96,7 @@ public class NotificationBroadcast extends BroadcastReceiver {
         }
 
         if(intent.getAction().equals(Constants.STOP_FOREGROUND_SERVICE)){
-            Log.i("bogdanzzz", "onReceive: ");
+            Log.i("bogdanzzz", "onReceive: stop service");
             Intent stop = new Intent(context,AudioService.class);
             stop.setAction(Constants.STOP_FOREGROUND_SERVICE);
             context.startService(stop);
