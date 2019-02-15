@@ -79,12 +79,15 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                     startForeground(Constants.NOTIFICATION_ID, notif);
 
 
-
             } else if (intent.getAction().equals(Constants.PAUSE_FOREGROUND_SERVICE)) {
-                    pauseSong();
+                pauseSong();
             } else if (intent.getAction().equals(Constants.REPLAY_FOREGROUND_SERVICE)) {
-                    pauseSong();
-            } else if (intent.getAction().equals(Constants.STOP_FOREGROUND_SERVICE)) {
+                pauseSong();
+            } else if(intent.getAction().equals(Constants.NOTIFY_MINUS)){
+                minus30sec();
+            }else if(intent.getAction().equals(Constants.NOTIFY_PLUS)) {
+                plus30sec();
+            }else if (intent.getAction().equals(Constants.STOP_FOREGROUND_SERVICE)) {
 
                 stopForeground(true);
                 stopSong();
@@ -178,7 +181,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
         }
     }
 
-    public void pauseSong(){
+    private void pauseSong(){
 
         notificationManager = getApplicationContext().getSystemService(NotificationManager.class);
 
@@ -201,10 +204,26 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
         }
     }
 
-    public void stopSong(){
+    private void stopSong(){
         if(mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
+        }
+    }
+
+    private void minus30sec(){
+        int skipTime = 30 * 1000; // skip 30s
+
+        if(mediaPlayer != null && mediaPlayer.isPlaying()){
+            mediaPlayer.seekTo(mediaPlayer.getCurrentPosition() - skipTime);
+        }
+    }
+
+    private void plus30sec(){
+        int skipTime = 30 * 1000; // skip 30s
+
+        if(mediaPlayer != null && mediaPlayer.isPlaying()){
+            mediaPlayer.seekTo(mediaPlayer.getCurrentPosition() + skipTime);
         }
     }
 

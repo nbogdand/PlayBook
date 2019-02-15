@@ -8,6 +8,7 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.media.MediaPlayer;
@@ -77,6 +78,18 @@ public class PlaySongViewModel extends ViewModel{
         stopSong.setAction(Constants.STOP_FOREGROUND_SERVICE);
         context.startService(stopSong);
 
+    }
+
+    public void minus30s(Context context){
+        Intent minus30s = new Intent(context,AudioService.class);
+        minus30s.setAction(Constants.NOTIFY_MINUS);
+        context.startService(minus30s);
+    }
+
+    public void plus30s(Context context){
+        Intent plus30s = new Intent(context,AudioService.class);
+        plus30s.setAction(Constants.NOTIFY_PLUS);
+        context.startService(plus30s);
     }
 
 }

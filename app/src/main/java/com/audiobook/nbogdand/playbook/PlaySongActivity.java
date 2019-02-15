@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
@@ -27,6 +28,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
 import com.audiobook.nbogdand.playbook.Services.AudioService;
 import com.audiobook.nbogdand.playbook.data.Song;
@@ -42,9 +44,10 @@ public class PlaySongActivity extends AppCompatActivity {
     private PlaySongActivityBinding binding;
     private Song playingSong;
 
-    private SeekBar seekBar;
+    private SeekBar songSeekBar,volumeSeekbar;
 
     private AudioService audioService;
+    private AudioManager audioManager;
 
     public static boolean SERVICE_READY_BOOL = false;
 
@@ -108,7 +111,7 @@ public class PlaySongActivity extends AppCompatActivity {
                 String duration = String.format("%02d:%02d",mm,ss);
                 binding.setDuration(duration);
 
-                seekBar = findViewById(R.id.seekBar);
+                songSeekBar = findViewById(R.id.song_seekBar);
 
                 bindService();
                 setObservers();
@@ -193,13 +196,46 @@ public class PlaySongActivity extends AppCompatActivity {
         binding.setPlayingSong(playingSong);
         binding.setPlayViewModel(playSongViewModel);
 
-        seekBar = findViewById(R.id.seekBar);
+        songSeekBar = findViewById(R.id.song_seekBar);
+        initVolumeSeekbar();
 
         long mm = playingSong.getLength() / 60 / 1000;
         long ss = playingSong.getLength() / 1000 % 60;
         String duration = String.format("%02d:%02d",mm,ss);
         binding.setDuration(duration);
 
+    }
+
+    private void initVolumeSeekbar(){
+        try {
+
+            volumeSeekbar = findViewById(R.id.change_volume_seekbar);
+            audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                volumeSeekbar.setMin(audioManager.getStreamMinVolume(AudioManager.STREAM_MUSIC));
+            }
+            volumeSeekbar.setMax(audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC));
+            volumeSeekbar.setProgress(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+            volumeSeekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,progress,0);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+        }catch (Exception e){
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(),"There has been a problem with volume controls :(",Toast.LENGTH_LONG).show();
+        }
     }
 
     public void startMyService(){
@@ -235,7 +271,7 @@ public class PlaySongActivity extends AppCompatActivity {
             audioService.changeProgressForSeekbar();
             playSongViewModel.setIsProgressUpdating(true);
 
-            seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            songSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                 @Override
                 public void onProgressChanged(final SeekBar seekBar, final int progress, boolean fromUser) {
                     if(fromUser){
@@ -307,8 +343,8 @@ public class PlaySongActivity extends AppCompatActivity {
                                     binding.setPlayingSong(AudioService.getPlayingSong());
                                 }
 
-                                seekBar.setProgress(audioService.getProgress());
-                                seekBar.setMax(audioService.getMaxValue());
+                                songSeekBar.setProgress(audioService.getProgress());
+                                songSeekBar.setMax(audioService.getMaxValue());
 
                                 long currentPositionInMs = audioService.getProgress() *
                                         AudioService.getMediaPlayer().getDuration() /1000;

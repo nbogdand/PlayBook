@@ -77,22 +77,41 @@ public class NotificationBroadcast extends BroadcastReceiver {
 
         if(intent.getAction().equals(Constants.NOTIFY_MINUS)){
 
+            Song playingSong = (Song) intent.getParcelableExtra(Constants.PLAYING_SONG);
+
+            Intent minus30sec = new Intent(context,AudioService.class);
+            minus30sec.setAction(Constants.NOTIFY_MINUS);
+            minus30sec.putExtra(Constants.PLAYING_SONG,playingSong);
+            context.startService(minus30sec);
+
+            /*
             mediaPlayer = AudioService.getMediaPlayer();
             int skipTime = 30 * 1000; // skip 30s
 
             if(mediaPlayer != null && mediaPlayer.isPlaying()){
                 mediaPlayer.seekTo(mediaPlayer.getCurrentPosition() - skipTime);
             }
+            */
 
         }
 
         if(intent.getAction().equals(Constants.NOTIFY_PLUS)){
+
+            Song playingSong = (Song) intent.getParcelableExtra(Constants.PLAYING_SONG);
+
+            Intent plus30sec = new Intent(context,AudioService.class);
+            plus30sec.setAction(Constants.NOTIFY_PLUS);
+            plus30sec.putExtra(Constants.PLAYING_SONG,playingSong);
+            context.startService(plus30sec);
+
+            /*
             mediaPlayer = AudioService.getMediaPlayer();
             int skipTime = 30 * 1000; // skip 30s
 
             if(mediaPlayer != null && mediaPlayer.isPlaying()){
                 mediaPlayer.seekTo(mediaPlayer.getCurrentPosition() + skipTime);
             }
+            */
         }
 
         if(intent.getAction().equals(Constants.STOP_FOREGROUND_SERVICE)){
