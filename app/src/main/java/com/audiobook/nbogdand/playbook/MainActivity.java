@@ -12,12 +12,23 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.transition.AutoTransition;
+import android.transition.ChangeBounds;
+import android.transition.Explode;
+import android.transition.Fade;
+import android.transition.Slide;
+import android.transition.Transition;
+import android.transition.TransitionSet;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 
 import com.audiobook.nbogdand.playbook.BroadcastReciever.NotificationBroadcast;
 import com.audiobook.nbogdand.playbook.data.Song;
@@ -44,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
-
+        reduceSharedElementBlinking();
 
             //Opening app for the first time
 
@@ -115,14 +126,32 @@ public class MainActivity extends AppCompatActivity {
                     // Getting a reference of the view on which user clicked
                     albumItemView = linearLayoutManager.findViewByPosition(viewModel.getSelectedPosition());
                     View imageView = albumItemView.findViewById(R.id.album_item);
+                    View titleTextView = albumItemView.findViewById(R.id.song_title_textView);
+                    View authorTextView = albumItemView.findViewById(R.id.song_author_textView);
 
                     // Start new activity to play the selected song
                     // with the album icon as a shared element
                     if(albumItemView != null) {
-                        ActivityOptions options = ActivityOptions.
-                                makeSceneTransitionAnimation(MainActivity.this, albumItemView,
-                                        viewModel.getSongAt(viewModel.getSelectedPosition()).getTitle());
 
+                        /*
+                        ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this,
+                                new Pair<View, String>(imageView, ViewCompat.getTransitionName(albumItemView)));
+
+                        */
+
+                        Pair<View, String> albumView = Pair.create(imageView,viewModel.getSongAt(viewModel.getSelectedPosition()).getTitle());
+                        Pair<View, String> titleView = Pair.create(titleTextView,viewModel.getSongAt(viewModel.getSelectedPosition()).getTitle()
+                                                                        + viewModel.getSongAt(viewModel.getSelectedPosition()).getAuthor());
+                        Pair<View, String> authorView = Pair.create(authorTextView,viewModel.getSongAt(viewModel.getSelectedPosition()).getAuthor());
+
+                        ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this,
+                                                                        albumView,titleView,authorView);
+
+                        /*
+                        ActivityOptionsCompat options = ActivityOptionsCompat.
+                                makeSceneTransitionAnimation(MainActivity.this, imageView,
+                                        viewModel.getSongAt(viewModel.getSelectedPosition()).getTitle());
+                        */
 
                         Song playingSong = new Song(viewModel.getSongAt(viewModel.getSelectedPosition()).getTitle(),
                                                     viewModel.getSongAt(viewModel.getSelectedPosition()).getAuthor(),
@@ -141,6 +170,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+
+    private void reduceSharedElementBlinking(){
+
+        ChangeBounds transition = new ChangeBounds();
+        transition.setInterpolator(new AccelerateDecelerateInterpolator());
+        transition.excludeTarget(android.R.id.statusBarBackground,true);
+        transition.excludeTarget(android.R.id.navigationBarBackground,true);
+       /// transition.excludeTarget(android.R.id.background,true);
+
+        getWindow().setEnterTransition(transition);
+        getWindow().setExitTransition(transition);
+
+
+
     }
 
     @Override

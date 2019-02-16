@@ -52,9 +52,6 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapterViewHolder>  
     @Override
     public void onBindViewHolder(@NonNull SongsAdapterViewHolder songsAdapterViewHolder, final int i) {
         songsAdapterViewHolder.bind(viewModel,i);
-
-     //   ViewCompat.setTransitionName(songsAdapterViewHolder.itemView.findViewById(R.id.album_item),songsList.get(i).getTitle()) ;
-
     }
 
     @Override

@@ -24,8 +24,17 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.telecom.Connection;
 import android.telecom.ConnectionService;
+import android.transition.AutoTransition;
+import android.transition.ChangeBounds;
+import android.transition.Explode;
+import android.transition.Fade;
+import android.transition.Slide;
+import android.transition.Transition;
+import android.transition.TransitionSet;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
@@ -93,28 +102,17 @@ public class PlaySongActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        reduceSharedElementBlinking();
+
         // If activity is open from notification
-        // It also means it was open at least 1 before and all things are initialized
             if (getIntent().getAction().equals(Constants.OPEN_NOTIFICATION)) {
 
-                Song currentSong = getIntent().getParcelableExtra(Constants.PLAYING_SONG);
-                Log.i("OPENNOTIFICATION ",currentSong.getTitle() + " ");
-                playSongViewModel = ViewModelProviders.of(this).get(PlaySongViewModel.class);
+                playingSong = getIntent().getParcelableExtra(Constants.PLAYING_SONG);
 
-                binding = DataBindingUtil.setContentView(this,R.layout.play_song_activity);
-                binding.setApplicationContext(getApplicationContext());
-                binding.setPlayViewModel(playSongViewModel);
-                binding.setPlayingSong(currentSong);
-
-                long mm = currentSong.getLength() / 60 / 1000;
-                long ss = currentSong.getLength() / 1000 % 60;
-                String duration = String.format("%02d:%02d",mm,ss);
-                binding.setDuration(duration);
-
-                songSeekBar = findViewById(R.id.song_seekBar);
-
+                init();
                 bindService();
                 setObservers();
+
                 int delay = 5 * 100;
                 final Handler handler = new Handler();
                 handler.postDelayed(new Runnable() {
@@ -134,19 +132,25 @@ public class PlaySongActivity extends AppCompatActivity {
 
                     playingSong = (Song) getIntent().getParcelableExtra(Constants.PLAYING_SONG);
 
+                    // Initialize viewModel and databinding
+                    init();
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && playingSong != null) {
                         imageTransitionName = playingSong.getTitle();
+                        binding.setPlayingSong(playingSong);
                     }
 
-                    // Initialize viewModel and databinding
-                    init();
+
 
                     // Setting the transition name to ImageView (shared
                     // element transition)
                     ImageView albumArtImageView = findViewById(R.id.album_art);
+                    View titleView = findViewById(R.id.title);
+                    View authorView = findViewById(R.id.author);
                     if (imageTransitionName != null) {
                         albumArtImageView.setTransitionName(imageTransitionName);
+                        titleView.setTransitionName(playingSong.getTitle() + playingSong.getAuthor());
+                        authorView.setTransitionName(playingSong.getAuthor());
                     }
 
 
@@ -299,6 +303,11 @@ public class PlaySongActivity extends AppCompatActivity {
         }
     }
 
+    public void changeVolumeSeekbar(){
+        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        volumeSeekbar.setProgress(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+    }
+
     private void setObservers(){
 
         playSongViewModel.getBinder().observe(this, new Observer<AudioService.AudioServiceBinder>() {
@@ -346,6 +355,8 @@ public class PlaySongActivity extends AppCompatActivity {
                                 songSeekBar.setProgress(audioService.getProgress());
                                 songSeekBar.setMax(audioService.getMaxValue());
 
+                                changeVolumeSeekbar();
+
                                 long currentPositionInMs = audioService.getProgress() *
                                         AudioService.getMediaPlayer().getDuration() /1000;
 
@@ -373,5 +384,20 @@ public class PlaySongActivity extends AppCompatActivity {
 
 
     }
+
+
+    private void reduceSharedElementBlinking(){
+
+        ChangeBounds transition = new ChangeBounds();
+        transition.setInterpolator(new AccelerateDecelerateInterpolator());
+        transition.excludeTarget(android.R.id.statusBarBackground,true);
+        transition.excludeTarget(android.R.id.navigationBarBackground,true);
+        transition.excludeTarget(android.R.id.background,true);
+
+        getWindow().setEnterTransition(transition);
+        getWindow().setExitTransition(transition);
+
+    }
+
 
 }
