@@ -1,6 +1,8 @@
 package com.audiobook.nbogdand.playbook;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.BroadcastReceiver;
@@ -10,7 +12,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.databinding.BindingAdapter;
 import android.databinding.DataBindingUtil;
+import android.graphics.drawable.AnimationDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Build;
@@ -35,7 +39,10 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.QuickContactBadge;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -57,6 +64,8 @@ public class PlaySongActivity extends AppCompatActivity {
 
     private AudioService audioService;
     private AudioManager audioManager;
+
+    AnimationDrawable buttonAnimation;
 
     public static boolean SERVICE_READY_BOOL = false;
 
@@ -169,7 +178,7 @@ public class PlaySongActivity extends AppCompatActivity {
                         }
 
                     } else {
-                        // Log.i(Constants.LOGGER_TAG,"Inainte de startMyService()");
+
                         startMyService();
                         setObservers();
 
@@ -197,8 +206,10 @@ public class PlaySongActivity extends AppCompatActivity {
 
         binding = DataBindingUtil.setContentView(this,R.layout.play_song_activity);
         binding.setApplicationContext(getApplicationContext());
+        binding.setActivity((AppCompatActivity) this);
         binding.setPlayingSong(playingSong);
         binding.setPlayViewModel(playSongViewModel);
+        binding.setIsPlaying(Commons.getIsPlaying());
 
         songSeekBar = findViewById(R.id.song_seekBar);
         initVolumeSeekbar();
@@ -337,7 +348,6 @@ public class PlaySongActivity extends AppCompatActivity {
             public void onChanged(@Nullable final Boolean aBoolean) {
 
                 Log.i("bogdanzzz", "onChanged: isProgressUpdating");
-
                 final Handler handler = new Handler();
                 final Runnable runnable = new Runnable() {
                     @Override
@@ -348,14 +358,24 @@ public class PlaySongActivity extends AppCompatActivity {
                             // Meaning the service is bound
                             if(playSongViewModel.getBinder().getValue() != null) {
 
+                                if(Commons.getServiceWasStopped()){
+                                    songSeekBar.setProgress(0);
+                                    audioService.changeProgressForSeekbar();
+                                    Commons.setServiceWasStopped(false);
+                                }
+
+                                // Setup DataBinding
+
+                                // Playing song for title and author/artist
                                 if(audioService.getSongHasBeenChanged()) {
                                     binding.setPlayingSong(AudioService.getPlayingSong());
                                 }
 
+                                // Progress of seekbars(position,volume)
                                 songSeekBar.setProgress(audioService.getProgress());
                                 songSeekBar.setMax(audioService.getMaxValue());
-
                                 changeVolumeSeekbar();
+
 
                                 long currentPositionInMs = audioService.getProgress() *
                                         AudioService.getMediaPlayer().getDuration() /1000;
@@ -363,12 +383,26 @@ public class PlaySongActivity extends AppCompatActivity {
                                 long mm = currentPositionInMs / 60 / 1000;
                                 long ss = currentPositionInMs /1000 % 60;
                                 String duration = String.format("%02d:%02d",mm,ss);
+
+                                // Current position
                                 binding.setCurrentPosition(duration);
+
+                                // Current state of mediaplayer for pause/play button
+                                // to change drawable
+                                binding.setIsPlaying(Commons.getIsPlaying());
+
+
                             }
 
                             handler.postDelayed(this,100);
 
                         }else{
+                            if(AudioService.getMediaPlayer() == null){
+                                // Meaning the foreground service was killed
+                                binding.setIsPlaying(Commons.getIsPlaying());
+                                songSeekBar.setProgress(0);
+                                binding.setCurrentPosition(String.format("%02d:%02d",0,0));
+                            }
                             handler.postDelayed(this,100);
                         }
                     }
@@ -380,8 +414,6 @@ public class PlaySongActivity extends AppCompatActivity {
 
             }
         });
-
-
 
     }
 

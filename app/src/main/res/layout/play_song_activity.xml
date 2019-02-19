@@ -5,9 +5,18 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
+        <import type="com.audiobook.nbogdand.playbook.R"/>
         <variable
             name="applicationContext"
             type="android.content.Context"/>
+
+        <variable
+            name="isPlaying"
+            type="boolean"/>
+
+        <variable
+            name="activity"
+            type="android.support.v7.app.AppCompatActivity"/>
 
         <variable
             name="playingSong"
@@ -37,22 +46,57 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
-        <ImageButton
-            android:id="@+id/plus30Button"
-            android:layout_width="90dp"
+        <LinearLayout
+            android:layout_width="300dp"
             android:layout_height="90dp"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="8dp"
-            android:scaleType="fitCenter"
-            android:background="?attr/selectableItemBackground"
-            app:srcCompat="@drawable/plus30s"
-            android:onClick="@{() -> playViewModel.plus30s(applicationContext)}"
-            android:clickable="true"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="@+id/guideline4"
-            app:layout_constraintTop_toBottomOf="@+id/change_volume_seekbar" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/change_volume_seekbar"
+            android:weightSum="10">
+
+            <ImageButton
+                android:id="@+id/minus30Button"
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:background="?attr/selectableItemBackground"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/minus30s"
+                android:layout_gravity="center"
+                android:layout_weight="4"
+                app:minus30Click="@{applicationContext}"/>
+
+            <ImageButton
+                android:id="@+id/pause_btn"
+                android:layout_width="70sp"
+                android:layout_height="70sp"
+                android:layout_weight="2"
+                android:background="?attr/selectableItemBackground"
+                android:scaleType="fitCenter"
+                android:layout_gravity="center"
+                android:scaleX=".80"
+                android:scaleY=".80"
+                app:activity="@{activity}"
+                app:applicationContext="@{applicationContext}"
+                app:changeDrawable="@{isPlaying ? @drawable/pause:@drawable/play}"
+                />
+
+            <ImageButton
+                android:id="@+id/plus30Button"
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/plus30s"
+                android:layout_weight="4"
+                android:layout_gravity="center"
+                app:plus30Click="@{applicationContext}"/>
+
+
+        </LinearLayout>
 
 
         <ImageView
@@ -69,53 +113,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageButton
-            android:id="@+id/play_btn"
-            android:layout_width="70sp"
-            android:layout_height="70sp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginEnd="8dp"
-            android:background="?attr/selectableItemBackground"
-            android:onClick="@{() ->  playViewModel.playSong(applicationContext,playingSong) }"
-            android:scaleType="fitCenter"
-            app:layout_constraintEnd_toStartOf="@+id/guideline4"
-            app:layout_constraintHorizontal_bias="0.666"
-            app:layout_constraintStart_toStartOf="@+id/guideline3"
-            app:layout_constraintTop_toBottomOf="@+id/change_volume_seekbar"
-            app:srcCompat="@drawable/play" />
-
-        <ImageButton
-            android:id="@+id/pause_btn"
-            android:layout_width="70sp"
-            android:layout_height="70sp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginEnd="8dp"
-            android:background="?attr/selectableItemBackground"
-            android:onClick="@{() -> playViewModel.pauseSong(applicationContext)}"
-            android:scaleType="fitCenter"
-            app:layout_constraintEnd_toStartOf="@+id/guideline3"
-            app:layout_constraintHorizontal_bias="0.4"
-            app:layout_constraintStart_toStartOf="@+id/guideline2"
-            app:layout_constraintTop_toBottomOf="@+id/change_volume_seekbar"
-            app:srcCompat="@drawable/pause" />
-
-        <ImageButton
-            android:id="@+id/minus30Button"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="8dp"
-            android:background="?attr/selectableItemBackground"
-            android:scaleType="fitCenter"
-            android:onClick="@{() -> playViewModel.minus30s(applicationContext)}"
-            app:layout_constraintEnd_toStartOf="@+id/guideline2"
-            app:layout_constraintHorizontal_bias="0.888"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/change_volume_seekbar"
-            app:srcCompat="@drawable/minus30s" />
 
         <android.support.constraint.Guideline
             android:id="@+id/guideline"

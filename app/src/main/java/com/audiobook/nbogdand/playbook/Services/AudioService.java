@@ -16,6 +16,8 @@ import android.view.View;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import com.audiobook.nbogdand.playbook.CommonBindingsUtils;
+import com.audiobook.nbogdand.playbook.Commons;
 import com.audiobook.nbogdand.playbook.Constants;
 import com.audiobook.nbogdand.playbook.MainActivity;
 import com.audiobook.nbogdand.playbook.NotificationGenerator;
@@ -89,9 +91,14 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                 plus30sec();
             }else if (intent.getAction().equals(Constants.STOP_FOREGROUND_SERVICE)) {
 
+                Log.i("bogdanzzz", "onStopCommand: STOP service" );
                 stopForeground(true);
                 stopSong();
                 stopSelf();
+                progress = 0;
+
+                NotificationManager nm = getApplicationContext().getSystemService(NotificationManager.class);
+                nm.cancel(Constants.NOTIFICATION_ID);
             }
         }
 
@@ -119,6 +126,8 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                                                                     playingSong,
                                                                     Constants.PAUSE_STATE);
         notificationManager.notify(Constants.NOTIFICATION_ID,notification);
+
+        Commons.setIsPlaying(true);
 
         mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -194,13 +203,22 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                                                                                 playingSong,
                                                                                 Constants.PLAY_STATE);
                 notificationManager.notify(Constants.NOTIFICATION_ID,notification);
+
+                Commons.setIsPlaying(false);
+
             } else {
                 mediaPlayer.start();
                Notification notification = NotificationGenerator.createNotification(getApplicationContext(),
                                                                                 playingSong,
                                                                                 Constants.PAUSE_STATE);
                 notificationManager.notify(Constants.NOTIFICATION_ID,notification);
+
+                Commons.setIsPlaying(true);
             }
+        }else{
+            // We need to start the service again, to play the song
+            // Proper notification is created in playSong(Context,String) method
+            playSong(getApplicationContext(),playingSong.getSongPath());
         }
     }
 
@@ -208,6 +226,8 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
         if(mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
+            Commons.setIsPlaying(false);
+            Commons.setServiceWasStopped(true);
         }
     }
 
@@ -249,6 +269,8 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
                     progress = (int) (floatProgress * 1000);
                    // Log.i("bogdanzzz", "run: " + progress);
                     handler.postDelayed(this, 100);
+                }else{
+                    Log.i("bogdanzzz", "run: mediaplayer is NULL");
                 }
 
             }
@@ -256,13 +278,9 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
         handler.postDelayed(runnable,100);
     }
 
-
-
     //
     // Methods for clients
     //
-
-    public boolean getIsPaused(){ return isPaused; }
 
     public boolean getSongHasBeenChanged(){
         return songHasBeenChanged;
@@ -275,6 +293,7 @@ public class AudioService extends Service implements MediaPlayer.OnPreparedListe
     public int getMaxValue(){return maxValue;}
 
     public static Song getPlayingSong(){ return playingSong; }
+
 
     public void resetTask(){
         progress = 0;

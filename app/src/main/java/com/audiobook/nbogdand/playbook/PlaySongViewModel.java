@@ -1,5 +1,7 @@
 package com.audiobook.nbogdand.playbook;
 
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
 import android.arch.lifecycle.ViewModel;
@@ -13,9 +15,14 @@ import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
+import android.view.animation.OvershootInterpolator;
+import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.audiobook.nbogdand.playbook.Services.AudioService;
 import com.audiobook.nbogdand.playbook.data.Song;
@@ -60,6 +67,7 @@ public class PlaySongViewModel extends ViewModel{
     public LiveData<Song> getPlayingSong(){ return playingSong; }
 
     public void playSong(Context context,Song playingSong){
+
         Intent statPlaying = new Intent(context, AudioService.class);
         statPlaying.setAction(Constants.START_FOREGROUND_SERVICE);
         statPlaying.putExtra(Constants.PLAYING_SONG,playingSong);
@@ -68,9 +76,27 @@ public class PlaySongViewModel extends ViewModel{
     }
 
     public void pauseSong(Context context){
+
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+            }
+        },100);
+
+        Log.i("bogdanzzz", "run: " + Commons.getServiceWasStopped());
+        if(Commons.getServiceWasStopped()){
+            isProgressUpdating.postValue(true);
+        }
+
         Intent pauseSong = new Intent(context,AudioService.class);
         pauseSong.setAction(Constants.PAUSE_FOREGROUND_SERVICE);
         context.startService(pauseSong);
+
+        Log.i("bogdanzzz", "pauseSong: " + Commons.getServiceWasStopped());
+
     }
 
     public void stopSong(Context context){
@@ -91,5 +117,6 @@ public class PlaySongViewModel extends ViewModel{
         plus30s.setAction(Constants.NOTIFY_PLUS);
         context.startService(plus30s);
     }
+
 
 }
