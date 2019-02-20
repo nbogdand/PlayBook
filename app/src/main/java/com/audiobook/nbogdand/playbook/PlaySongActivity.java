@@ -51,6 +51,8 @@ import com.audiobook.nbogdand.playbook.data.Song;
 import com.audiobook.nbogdand.playbook.databinding.PlaySongActivityBinding;
 
 import java.net.Inet4Address;
+import java.sql.Time;
+import java.util.concurrent.TimeUnit;
 
 import static com.audiobook.nbogdand.playbook.MainActivity.MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE;
 
@@ -214,8 +216,8 @@ public class PlaySongActivity extends AppCompatActivity {
         songSeekBar = findViewById(R.id.song_seekBar);
         initVolumeSeekbar();
 
-        long mm = playingSong.getLength() / 60 / 1000;
-        long ss = playingSong.getLength() / 1000 % 60;
+        long mm = TimeUnit.MILLISECONDS.toMinutes(playingSong.getLength());
+        long ss = TimeUnit.MILLISECONDS.toSeconds( playingSong.getLength()- mm * 60 * 1000);
         String duration = String.format("%02d:%02d",mm,ss);
         binding.setDuration(duration);
 
@@ -369,6 +371,12 @@ public class PlaySongActivity extends AppCompatActivity {
                                 // Playing song for title and author/artist
                                 if(audioService.getSongHasBeenChanged()) {
                                     binding.setPlayingSong(AudioService.getPlayingSong());
+
+                                    long newDuration = AudioService.getPlayingSong().getLength();
+                                    long mm = TimeUnit.MILLISECONDS.toMinutes(newDuration);
+                                    long ss = TimeUnit.MILLISECONDS.toSeconds( newDuration - mm * 60 * 1000);
+                                    String duration = String.format("%02d:%02d",mm,ss);
+                                    binding.setDuration(duration);
                                 }
 
                                 // Progress of seekbars(position,volume)
@@ -380,8 +388,8 @@ public class PlaySongActivity extends AppCompatActivity {
                                 long currentPositionInMs = audioService.getProgress() *
                                         AudioService.getMediaPlayer().getDuration() /1000;
 
-                                long mm = currentPositionInMs / 60 / 1000;
-                                long ss = currentPositionInMs /1000 % 60;
+                                long mm = TimeUnit.MILLISECONDS.toMinutes(currentPositionInMs);
+                                long ss = TimeUnit.MILLISECONDS.toSeconds(currentPositionInMs - mm * 60 * 1000);
                                 String duration = String.format("%02d:%02d",mm,ss);
 
                                 // Current position

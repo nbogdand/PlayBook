@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.databinding.BindingAdapter;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
@@ -93,6 +94,42 @@ public class CommonBindingsUtils {
 
     }
 
+
+    @BindingAdapter("volumeDownClick")
+    public static void setVolumeDownClick(ImageView imageView,final Context context){
+
+        final ObjectAnimator animator = setUpAnimation(imageView);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                animator.start();
+
+                AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) - 1,0);
+
+            }
+        });
+
+    }
+
+    @BindingAdapter("volumePlusClick")
+    public static void setVolumePlusClick(ImageView imageView,final Context context){
+
+        final ObjectAnimator animator = setUpAnimation(imageView);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                animator.start();
+
+                AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) + 1,0);
+
+            }
+        });
+
+    }
+
+
     public static ObjectAnimator setUpAnimation(View view){
         PropertyValuesHolder scaleX = PropertyValuesHolder.ofFloat(View.SCALE_X,0.5f,1f);
         PropertyValuesHolder scaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y,0.5f,1f);
@@ -103,5 +140,6 @@ public class CommonBindingsUtils {
 
         return buttonAnimator;
     }
+
 
 }

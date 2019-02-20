@@ -237,7 +237,8 @@
             app:layout_constraintEnd_toStartOf="@+id/guideline2"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/guideline"
-            app:srcCompat="@android:drawable/ic_lock_silent_mode" />
+            app:srcCompat="@android:drawable/ic_lock_silent_mode"
+            app:volumeDownClick="@{applicationContext}"/>
 
         <ImageView
             android:id="@+id/volume_plus_imageView"
@@ -249,7 +250,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/guideline4"
             app:layout_constraintTop_toTopOf="@+id/guideline"
-            app:srcCompat="@android:drawable/ic_lock_silent_mode_off" />
+            app:srcCompat="@android:drawable/ic_lock_silent_mode_off"
+            app:volumePlusClick="@{applicationContext}"/>
 
     </android.support.constraint.ConstraintLayout>
 
