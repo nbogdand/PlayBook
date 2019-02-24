@@ -5,19 +5,13 @@ import android.databinding.ViewDataBinding;
 
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
-import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
-import com.audiobook.nbogdand.playbook.R;
 import com.audiobook.nbogdand.playbook.SongsViewModel;
 import com.audiobook.nbogdand.playbook.data.Song;
-import com.audiobook.nbogdand.playbook.databinding.ItemRecycleviewBinding;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class SongsAdapter extends RecyclerView.Adapter<SongsAdapterViewHolder>  {
@@ -29,7 +23,6 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapterViewHolder>  
     public SongsAdapter(@LayoutRes  int layoutId, SongsViewModel viewModel) {
         this.viewModel = viewModel;
         this.layoutId = layoutId;
-        //Log.d("recycleviewxx ::: ","constructor");
     }
 
     private int getLayoutIdForPosition(int position){
@@ -45,7 +38,6 @@ public class SongsAdapter extends RecyclerView.Adapter<SongsAdapterViewHolder>  
     public SongsAdapterViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
         ViewDataBinding binding = DataBindingUtil.inflate(inflater,i,viewGroup,false);
-       // Log.d("recycleviewxx ::: ","onCreateViewHolder");
         return new SongsAdapterViewHolder(binding);
     }
 

@@ -4,10 +4,10 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Song implements Parcelable {
-    String title;
-    String author = "";
-    long length;
-    String songPath;
+    private String title;
+    private String author = "";
+    private long length;
+    private String songPath;
 
     public Song() {
     }

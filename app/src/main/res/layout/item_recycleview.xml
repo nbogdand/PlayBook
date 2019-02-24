@@ -19,17 +19,16 @@
 
 
     <LinearLayout
-        android:layout_height="60sp"
+        android:layout_height="50sp"
         android:layout_width="match_parent"
         android:orientation="horizontal"
         android:layout_margin="8dp"
-        android:weightSum="10"
-        android:background="@android:color/transparent">
+        android:weightSum="10">
 
         <ImageView
             android:id="@+id/album_item"
-            android:layout_width="60sp"
-            android:layout_height="60sp"
+            android:layout_width="50sp"
+            android:layout_height="50sp"
             android:scaleType="fitCenter"
             android:transitionName="@{viewModel.getSongAt(position).title}"
             android:src="@drawable/album_art"
@@ -39,30 +38,32 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="60sp"
+            android:layout_height="50sp"
             android:orientation="vertical"
             android:onClick="@{() -> viewModel.onItemClick(position)}"
             android:layout_weight="10"
-            android:weightSum="2"
             android:background="?attr/selectableItemBackground">
 
 
             <TextView
                 android:id="@+id/song_title_textView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="35sp"
                 android:transitionName="@{viewModel.getSongAt(position).title + viewModel.getSongAt(position).author}"
                 android:text="@{viewModel.getSongAt(position).title}"
                 android:textSize="18sp"
-                android:layout_weight="1"/>
+                android:maxLines="1"
+                android:paddingRight="8sp"
+                android:background="?attr/selectableItemBackground"/>
 
             <TextView
                 android:id="@+id/song_author_textView"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="15sp"
                 android:transitionName="@{viewModel.getSongAt(position).author}"
                 android:text="@{viewModel.getSongAt(position).author}"
-                android:layout_weight="1"/>
+                android:textSize="12sp"
+                android:background="?attr/selectableItemBackground"/>
 
 
         </LinearLayout>

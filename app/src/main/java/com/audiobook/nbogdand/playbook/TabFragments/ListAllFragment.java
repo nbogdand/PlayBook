@@ -1,7 +1,6 @@
-package com.audiobook.nbogdand.playbook;
+package com.audiobook.nbogdand.playbook.TabFragments;
 
 import android.Manifest;
-import android.app.ActivityOptions;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.arch.lifecycle.Observer;
@@ -27,6 +26,11 @@ import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
 import com.audiobook.nbogdand.playbook.BroadcastReciever.NotificationBroadcast;
+import com.audiobook.nbogdand.playbook.Constants;
+import com.audiobook.nbogdand.playbook.MainActivity;
+import com.audiobook.nbogdand.playbook.PlaySongActivity;
+import com.audiobook.nbogdand.playbook.R;
+import com.audiobook.nbogdand.playbook.SongsViewModel;
 import com.audiobook.nbogdand.playbook.data.Song;
 import com.audiobook.nbogdand.playbook.data.Songs;
 
@@ -45,8 +49,6 @@ public class ListAllFragment extends Fragment {
     static final int MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 1;
 
     private View albumItemView;
-    public static Integer playingPosition = null;
-
 
     public void setContextsListAllFragment(Context activityContext, Context applicationContext) {
         this.activityContext = activityContext;

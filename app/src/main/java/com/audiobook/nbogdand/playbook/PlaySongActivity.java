@@ -1,48 +1,25 @@
 package com.audiobook.nbogdand.playbook;
 
 import android.Manifest;
-import android.animation.ObjectAnimator;
-import android.animation.PropertyValuesHolder;
 import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.databinding.BindingAdapter;
 import android.databinding.DataBindingUtil;
-import android.graphics.drawable.AnimationDrawable;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
-import android.telecom.Connection;
-import android.telecom.ConnectionService;
-import android.transition.AutoTransition;
 import android.transition.ChangeBounds;
-import android.transition.Explode;
-import android.transition.Fade;
-import android.transition.Slide;
-import android.transition.Transition;
-import android.transition.TransitionSet;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
-import android.view.animation.OvershootInterpolator;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.QuickContactBadge;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -50,8 +27,6 @@ import com.audiobook.nbogdand.playbook.Services.AudioService;
 import com.audiobook.nbogdand.playbook.data.Song;
 import com.audiobook.nbogdand.playbook.databinding.PlaySongActivityBinding;
 
-import java.net.Inet4Address;
-import java.sql.Time;
 import java.util.concurrent.TimeUnit;
 
 import static com.audiobook.nbogdand.playbook.MainActivity.MY_PERMISSION_REQUEST_READ_EXTERNAL_STORAGE;
@@ -66,8 +41,6 @@ public class PlaySongActivity extends AppCompatActivity {
 
     private AudioService audioService;
     private AudioManager audioManager;
-
-    AnimationDrawable buttonAnimation;
 
     public static boolean SERVICE_READY_BOOL = false;
 

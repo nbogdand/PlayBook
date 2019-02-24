@@ -2,17 +2,17 @@ package com.audiobook.nbogdand.playbook;
 
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
-import android.app.Activity;
-import android.arch.lifecycle.ViewModelProvider;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.BindingAdapter;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
@@ -129,6 +129,18 @@ public class CommonBindingsUtils {
 
     }
 
+    @BindingAdapter("onClickedAddButton")
+    public static void setOnClickedAddButton(Button button, final Fragment fragment){
+
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                CategoriesViewModel categoriesViewModel = ViewModelProviders.of(fragment).
+                                                                get(CategoriesViewModel.class);
+                categoriesViewModel.onClickedAddButton();
+            }
+        });
+    }
 
     public static ObjectAnimator setUpAnimation(View view){
         PropertyValuesHolder scaleX = PropertyValuesHolder.ofFloat(View.SCALE_X,0.5f,1f);
